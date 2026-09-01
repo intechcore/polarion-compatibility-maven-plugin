@@ -34,6 +34,9 @@ mvn checkstyle:check
 # Check javadoc alone, without the rest of verify
 mvn javadoc:javadoc-no-fork
 
+# Read the goal documentation from the command line
+mvn polarion-compatibility:help -Ddetail=true -Dgoal=check
+
 # Skip the integration tests, which spawn one Maven build per project
 mvn clean verify -Dinvoker.skip=true
 

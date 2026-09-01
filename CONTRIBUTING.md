@@ -5,7 +5,7 @@
 ### Prerequisites
 
 - Java 21
-- Maven 3.6+
+- Maven 3.6.3+
 
 ### Building
 
