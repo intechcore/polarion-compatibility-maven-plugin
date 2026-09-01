@@ -127,11 +127,13 @@ public final class BundleScanner {
             result.unreadableClasses.add(container + "!/" + entryName);
             return;
         }
-        String source = visitor.className() != null ? visitor.className() : entryName;
+        // ClassReader.accept always calls visit first, so a class which parsed has a name.
+        // A detection key is the packageName of a rule this scanner matched, so all() holds it.
+        String source = visitor.className();
         for (Map.Entry<String, String> detection : visitor.detections().entrySet()) {
             PackageRules.Rule rule = rules.all().get(detection.getKey());
             result.add(new Violation(Violation.Kind.CLASS_REFERENCE, detection.getKey(),
-                    rule == null ? null : rule.replacement(), container, source, detection.getValue()));
+                    rule.replacement(), container, source, detection.getValue()));
         }
     }
 

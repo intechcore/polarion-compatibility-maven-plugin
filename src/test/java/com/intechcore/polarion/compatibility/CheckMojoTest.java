@@ -11,6 +11,7 @@ import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -199,5 +200,45 @@ class CheckMojoTest {
         assertThatThrownBy(this.mojo::execute)
                 .isInstanceOf(MojoFailureException.class)
                 .hasMessageContaining("javax.servlet");
+    }
+
+
+    @Test
+    void execute_shouldSkipWhenTheJarIsNotConfigured() {
+        set("jarFile", null);
+
+        assertThatCode(this.mojo::execute).doesNotThrowAnyException();
+    }
+
+    @Test
+    void execute_shouldReportSkippedAndUnreadableEntries() throws IOException {
+        Map<String, byte[]> innermost = TestArchives.entries();
+        innermost.put("org/legacy/Dep.class", TestArchives.cls("org/legacy/Dep")
+                .withTypeInstruction("javax/servlet/Filter").build());
+
+        Map<String, byte[]> middle = TestArchives.entries();
+        middle.put("inner.jar", TestArchives.jar(innermost));
+
+        Map<String, byte[]> entries = TestArchives.entries();
+        entries.put("outer.jar", TestArchives.jar(middle));
+        entries.put("com/example/Broken.class", "not a class".getBytes(StandardCharsets.UTF_8));
+        givenJar(entries);
+        set("maxNestingDepth", 1);
+
+        assertThatCode(this.mojo::execute).doesNotThrowAnyException();
+    }
+
+    @Test
+    void execute_shouldWrapAScanFailure() throws IOException {
+        // The local header survives, the deflated entry data stops mid stream, so the scanner
+        // fails while reading the entry rather than while opening the jar.
+        Path jar = this.workDirectory.resolve("truncated.jar");
+        byte[] bytes = TestArchives.jar(withServletReference());
+        Files.write(jar, Arrays.copyOf(bytes, bytes.length / 2));
+        set("jarFile", jar.toFile());
+
+        assertThatThrownBy(this.mojo::execute)
+                .isInstanceOf(MojoExecutionException.class)
+                .hasMessageContaining("Cannot scan");
     }
 }

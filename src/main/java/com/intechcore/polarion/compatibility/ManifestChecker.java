@@ -43,8 +43,9 @@ public final class ManifestChecker {
         Attributes attributes = manifest.getMainAttributes();
         List<Violation> violations = new ArrayList<>();
         for (Map.Entry<Object, Object> attribute : attributes.entrySet()) {
-            String value = attribute.getValue() == null ? null : attribute.getValue().toString();
-            if (value == null || value.isBlank()) {
+            // Manifest parses every main attribute into a String, so the value is never null.
+            String value = attribute.getValue().toString();
+            if (value.isBlank()) {
                 continue;
             }
             PackageRules.Rule rule = rules.match(value);

@@ -291,4 +291,52 @@ class BundleScannerTest {
         assertThat(result.violations()).isEmpty();
         assertThat(result.skippedJars()).containsExactly("bundle.jar!/outer.jar!/inner.jar");
     }
+
+
+    @Test
+    void scan_shouldIgnoreDirectoryEntries() throws IOException {
+        Map<String, byte[]> entries = TestArchives.entries();
+        entries.put("com/example/", new byte[0]);
+        entries.put("com/example/Legacy.class", TestArchives.cls("com/example/Legacy")
+                .withTypeInstruction("javax/servlet/Filter").build());
+
+        BundleScanner.ScanResult result = scan(entries);
+
+        assertThat(result.classesScanned()).isEqualTo(1);
+        assertThat(result.violations()).extracting(Violation::subject).containsExactly("javax.servlet");
+    }
+
+    @Test
+    void scan_shouldLeaveDescriptorsAndJspAloneWhenTheCheckIsOff() throws IOException {
+        Map<String, byte[]> entries = TestArchives.entries();
+        entries.put("webapp/demo/WEB-INF/web.xml",
+                "<web-app xmlns=\"http://java.sun.com/xml/ns/javaee\"/>".getBytes(StandardCharsets.UTF_8));
+        entries.put("webapp/demo/index.jsp",
+                "<%@ page import=\"javax.servlet.http.HttpServletRequest\" %>".getBytes(StandardCharsets.UTF_8));
+
+        BundleScanner.ScanResult result = BundleScanner.builder(rules)
+                .checkDescriptors(false)
+                .build()
+                .scan(writeJar(entries));
+
+        assertThat(result.violations()).isEmpty();
+    }
+
+    @Test
+    void excludedJars_shouldTreatNullAsNoExclusion() throws IOException {
+        Map<String, byte[]> nested = TestArchives.entries();
+        nested.put("org/legacy/Dep.class", TestArchives.cls("org/legacy/Dep")
+                .withTypeInstruction("javax/servlet/Filter").build());
+
+        Map<String, byte[]> entries = TestArchives.entries();
+        entries.put("legacy.jar", TestArchives.jar(nested));
+
+        BundleScanner.ScanResult result = BundleScanner.builder(rules)
+                .excludedJars(null)
+                .build()
+                .scan(writeJar(entries));
+
+        assertThat(result.excludedJars()).isEmpty();
+        assertThat(result.violations()).extracting(Violation::subject).containsExactly("javax.servlet");
+    }
 }
