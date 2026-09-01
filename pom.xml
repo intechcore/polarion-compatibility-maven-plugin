@@ -9,6 +9,13 @@
     <version>0.1.1-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
 
+    <!-- Maven 3 reads the minimum from here. The requiredMavenVersion below is the Maven 4
+         mechanism, which that release honours in preference to this element and earlier
+         releases ignore. Both are needed to state one requirement to every Maven. -->
+    <prerequisites>
+        <maven>${maven.min.version}</maven>
+    </prerequisites>
+
     <name>Polarion Compatibility Maven Plugin</name>
     <description>Maven plugin that fails the build when a Polarion extension bundles classes referencing legacy javax packages</description>
     <url>https://github.com/intechcore/polarion-compatibility-maven-plugin</url>
