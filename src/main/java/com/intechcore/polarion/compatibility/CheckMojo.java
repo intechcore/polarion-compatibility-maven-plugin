@@ -132,6 +132,9 @@ public class CheckMojo extends AbstractMojo {
      * Creates the goal. Maven instantiates it and injects the parameters above.
      */
     public CheckMojo() {
+        // Declared only so javadoc has a constructor to document: an implicit one cannot carry
+        // a comment, and maven-javadoc-plugin runs with failOnWarnings. Maven assigns every
+        // @Parameter field by reflection after construction, so there is nothing to do here.
     }
 
     @Override
