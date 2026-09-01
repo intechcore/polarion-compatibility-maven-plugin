@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
 class PackageRulesTest {
@@ -129,5 +130,48 @@ class PackageRulesTest {
         assertThat(catchThrowable(() -> RulesetLoader.loadBuiltin("nope", PackageRules.builder())))
                 .isInstanceOf(IOException.class)
                 .hasMessageContaining("Unknown ruleset");
+    }
+
+
+    @Test
+    void loadLines_shouldForbidWithoutAReplacementWhenTheLineHasNoArrow() {
+        PackageRules.Builder builder = PackageRules.builder();
+        RulesetLoader.loadLines(List.of("javax.servlet"), builder, "inline");
+
+        assertThat(builder.build().match("javax.servlet.Filter").replacement()).isNull();
+    }
+
+    @Test
+    void loadLines_shouldTreatAnEmptyReplacementAsNone() {
+        PackageRules.Builder builder = PackageRules.builder();
+        RulesetLoader.loadLines(List.of("javax.servlet ->"), builder, "inline");
+
+        assertThat(builder.build().match("javax.servlet.Filter").replacement()).isNull();
+    }
+
+    @Test
+    void loadLines_shouldAcceptDigitsUnderscoreAndDollar() {
+        PackageRules.Builder builder = PackageRules.builder();
+        RulesetLoader.loadLines(List.of("com.legacy_2.api$inner"), builder, "inline");
+
+        assertThat(builder.build().match("com.legacy_2.api$inner.Type")).isNotNull();
+    }
+
+    @Test
+    void loadLines_shouldRejectAnEmptyPackageName() {
+        PackageRules.Builder builder = PackageRules.builder();
+
+        assertThatThrownBy(() -> RulesetLoader.loadLines(List.of("!"), builder, "inline"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Empty package name in inline");
+    }
+
+    @Test
+    void loadLines_shouldRejectAnInvalidCharacter() {
+        PackageRules.Builder builder = PackageRules.builder();
+
+        assertThatThrownBy(() -> RulesetLoader.loadLines(List.of("javax servlet"), builder, "inline"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Invalid package name 'javax servlet' in inline");
     }
 }

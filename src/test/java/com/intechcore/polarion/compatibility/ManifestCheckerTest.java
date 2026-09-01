@@ -67,4 +67,14 @@ class ManifestCheckerTest {
         assertThat(ManifestChecker.abbreviate("short")).isEqualTo("short");
         assertThat(ManifestChecker.abbreviate("x".repeat(200))).hasSize(120).endsWith("...");
     }
+
+
+    @Test
+    void check_shouldIgnoreABlankHeaderValue() throws IOException {
+        byte[] manifest = TestArchives.manifest(List.of("X-Blank: ", "Import-Package: javax.el"));
+
+        assertThat(ManifestChecker.check(manifest, rules, "bundle.jar"))
+                .extracting(Violation::subject)
+                .containsExactly("javax.el");
+    }
 }

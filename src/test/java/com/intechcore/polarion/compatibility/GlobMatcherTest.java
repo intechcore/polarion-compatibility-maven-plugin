@@ -42,4 +42,30 @@ class GlobMatcherTest {
         assertThat(matcher.isEmpty()).isTrue();
         assertThat(matcher.matches("anything.jar")).isFalse();
     }
+
+
+    @Test
+    void matches_shouldIgnoreBlankGlobs() {
+        GlobMatcher matcher = new GlobMatcher(List.of("   ", "", "legacy-*.jar"));
+
+        assertThat(matcher.isEmpty()).isFalse();
+        assertThat(matcher.matches("bundle.jar!/legacy-1.0.jar")).isTrue();
+        assertThat(matcher.matches("bundle.jar!/other-1.0.jar")).isFalse();
+    }
+
+    @Test
+    void matches_shouldTreatQuestionMarkAsOneCharacter() {
+        GlobMatcher matcher = new GlobMatcher(List.of("log4j-?.jar"));
+
+        assertThat(matcher.matches("bundle.jar!/log4j-2.jar")).isTrue();
+        assertThat(matcher.matches("bundle.jar!/log4j-12.jar")).isFalse();
+    }
+
+    @Test
+    void matches_shouldAcceptAStarWhichEndsThePattern() {
+        GlobMatcher matcher = new GlobMatcher(List.of("legacy*"));
+
+        assertThat(matcher.matches("bundle.jar!/legacy-1.0.jar")).isTrue();
+        assertThat(matcher.matches("bundle.jar!/modern-1.0.jar")).isFalse();
+    }
 }
