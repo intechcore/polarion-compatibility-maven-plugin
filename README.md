@@ -1,5 +1,13 @@
 # Polarion Compatibility Maven Plugin
 
+[![CI](https://github.com/intechcore/polarion-compatibility-maven-plugin/actions/workflows/ci.yml/badge.svg)](https://github.com/intechcore/polarion-compatibility-maven-plugin/actions/workflows/ci.yml)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=intechcore_polarion-compatibility-maven-plugin&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=intechcore_polarion-compatibility-maven-plugin)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=intechcore_polarion-compatibility-maven-plugin&metric=coverage)](https://sonarcloud.io/summary/new_code?id=intechcore_polarion-compatibility-maven-plugin)
+[![GitHub Release](https://img.shields.io/github/v/release/intechcore/polarion-compatibility-maven-plugin)](https://github.com/intechcore/polarion-compatibility-maven-plugin/releases)
+[![Maven Central](https://img.shields.io/maven-central/v/com.intechcore/polarion-compatibility-maven-plugin)](https://central.sonatype.com/artifact/com.intechcore/polarion-compatibility-maven-plugin)
+[![Java 21](https://img.shields.io/badge/java-21-blue.svg)](https://openjdk.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 Fails the Maven build when a Polarion extension bundle would be rejected by Polarion's own
 compatibility gate. It scans the packaged jar and every jar nested inside it.
 
@@ -312,3 +320,7 @@ mvn checkstyle:check
    version to `pom.xml` and `README.md`, commits, tags `vX.Y.Z` and pushes.
 2. The tag triggers `release.yml`: tests, publish to Maven Central, GitHub Release, then a
    commit that returns `main` to the next `-SNAPSHOT`.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
