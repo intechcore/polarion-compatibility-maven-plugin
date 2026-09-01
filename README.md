@@ -314,6 +314,9 @@ mvn clean verify
 mvn checkstyle:check
 ```
 
+`mvn verify` also runs javadoc with `failOnWarnings`. A missing `@param`, `@return` or `@throws`
+on a public member fails the build.
+
 ## Release
 
 1. Run the `Bump Version & Release` workflow with `patch`, `minor` or `major`. It writes the

@@ -30,6 +30,9 @@ mvn test -Dtest=PackageRulesTest
 
 # Check code style
 mvn checkstyle:check
+
+# Check javadoc alone, without the rest of verify
+mvn javadoc:javadoc-no-fork
 ```
 
 ## Architecture
@@ -121,6 +124,17 @@ so every default the test relies on has to be set explicitly in `setUp`. Forgett
 
 Checkstyle with a customized Google style: 4-space indentation, 160 character line limit. Run
 `mvn checkstyle:check` to verify. A warning fails the build.
+
+Javadoc is gated the same way. `maven-javadoc-plugin` runs at `verify` with `failOnWarnings`, so
+a missing `@param`, `@return` or `@throws` on a public member fails an ordinary build, not only a
+release. Every public type and method carries complete tags; keep it that way when adding one.
+
+Two consequences worth knowing:
+
+- A public class needs an explicit constructor with javadoc. An implicit one cannot be
+  documented, and javadoc reports it. `CheckMojo` carries one for that reason.
+- A type which is only ever built internally should declare a private constructor instead, which
+  javadoc then ignores. `BundleScanner.ScanResult` does.
 
 ## Release
 
