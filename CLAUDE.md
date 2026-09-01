@@ -33,6 +33,12 @@ mvn checkstyle:check
 
 # Check javadoc alone, without the rest of verify
 mvn javadoc:javadoc-no-fork
+
+# Skip the integration tests, which spawn one Maven build per project
+mvn clean verify -Dinvoker.skip=true
+
+# Run one integration test project
+mvn verify -Dinvoker.test=legacy-bundle
 ```
 
 ## Architecture
@@ -119,6 +125,27 @@ survive `ClassReader`.
 `@Parameter(defaultValue = ...)` through its configurator, which `new CheckMojo()` never runs,
 so every default the test relies on has to be set explicitly in `setUp`. Forgetting
 `checkClasses` makes the scan silently find nothing.
+
+### Integration tests
+
+That reflective setter is also the reason `src/it` exists. Nothing in the unit tests exercises
+the plugin descriptor, the `@Parameter` defaults, or the binding to the `verify` phase.
+`maven-invoker-plugin` runs the goal from a real pom in a real build instead, one Maven process
+per project:
+
+| Project | Expects |
+|---|---|
+| `clean-bundle` | a jar naming `jakarta` only, build succeeds |
+| `legacy-bundle` | a jar loading `javax.servlet.Filter`, build fails with the report |
+| `survey-mode` | the same jar with `failOnViolation=false`, build succeeds with a warning |
+
+Each carries an `invoker.properties` setting `invoker.goals = verify`, because the goal binds to
+`verify` and the invoker default phase is `package`. Each carries a `verify.groovy` which reads
+`build.log` and asserts what the build printed; a failing assertion fails the integration test.
+
+The javax reference in a fixture comes from a method returning the name, never from a
+`static final String`. A constant field lives in a `ConstantValue` attribute, which neither this
+plugin nor Polarion inspects, so the fixture would pass and prove nothing.
 
 ## Code Style
 
