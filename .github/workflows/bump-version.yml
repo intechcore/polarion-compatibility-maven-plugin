@@ -36,11 +36,16 @@ jobs:
         run: |
           VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout | sed 's/-SNAPSHOT//')
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Current version: $VERSION"
+          echo "Current development version: $VERSION"
 
       - name: Calculate new version
         id: new
         run: |
+          # The pom already holds the next development version: release.yml
+          # advanced it after the previous release. A patch release therefore
+          # publishes it as it stands. Incrementing here as well would skip a
+          # number, and would make the very first release 0.1.1 rather than
+          # 0.1.0.
           IFS='.' read -r major minor patch <<< "${{ steps.current.outputs.version }}"
           case "${{ inputs.bump_type }}" in
             major)
@@ -53,12 +58,11 @@ jobs:
               patch=0
               ;;
             patch)
-              patch=$((patch + 1))
               ;;
           esac
           NEW_VERSION="${major}.${minor}.${patch}"
           echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
-          echo "New version: $NEW_VERSION"
+          echo "Releasing: $NEW_VERSION"
 
       - name: Update version in pom.xml
         run: mvn versions:set -DnewVersion=${{ steps.new.outputs.version }} -DgenerateBackupPoms=false
@@ -81,7 +85,7 @@ jobs:
         run: |
           echo "## Release v${{ steps.new.outputs.version }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Version bumped from \`${{ steps.current.outputs.version }}\` to \`${{ steps.new.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "Releasing \`${{ steps.new.outputs.version }}\` from development version \`${{ steps.current.outputs.version }}-SNAPSHOT\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "The [release workflow](../../actions/workflows/release.yml) will now:" >> $GITHUB_STEP_SUMMARY
           echo "- Run tests" >> $GITHUB_STEP_SUMMARY
