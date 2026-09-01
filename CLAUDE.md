@@ -126,8 +126,10 @@ Checkstyle with a customized Google style: 4-space indentation, 160 character li
 `mvn checkstyle:check` to verify. A warning fails the build.
 
 Javadoc is gated the same way. `maven-javadoc-plugin` runs at `verify` with `failOnWarnings`, so
-a missing `@param`, `@return` or `@throws` on a public member fails an ordinary build, not only a
-release. Every public type and method carries complete tags; keep it that way when adding one.
+a missing `@param`, `@return` or `@throws` fails an ordinary build, not only a release. The
+plugin's `show` parameter is left at its default of `protected`, which covers public and
+protected members alike. Every one of them carries complete tags; keep it that way when adding
+one.
 
 Two consequences worth knowing:
 
