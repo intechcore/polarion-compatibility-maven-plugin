@@ -1,0 +1,1 @@
+# polarion-compatibility-maven-plugin
