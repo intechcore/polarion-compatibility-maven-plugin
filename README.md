@@ -5,7 +5,7 @@
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=intechcore_polarion-compatibility-maven-plugin&metric=coverage)](https://sonarcloud.io/summary/new_code?id=intechcore_polarion-compatibility-maven-plugin)
 [![GitHub Release](https://img.shields.io/github/v/release/intechcore/polarion-compatibility-maven-plugin)](https://github.com/intechcore/polarion-compatibility-maven-plugin/releases)
 [![Maven Central](https://img.shields.io/maven-central/v/com.intechcore/polarion-compatibility-maven-plugin)](https://central.sonatype.com/artifact/com.intechcore/polarion-compatibility-maven-plugin)
-[![Java 17+](https://img.shields.io/badge/java-17+-blue.svg)](https://openjdk.org/)
+[![Java 21](https://img.shields.io/badge/java-21-blue.svg)](https://openjdk.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Maven plugin that fails the build when a Polarion extension bundles classes which reference a legacy
@@ -110,7 +110,7 @@ A finding names the source, the class and the reference:
 
 ## Requirements
 
-- Java 17+
+- Java 21
 - Maven 3.6+
 
 ## Building
