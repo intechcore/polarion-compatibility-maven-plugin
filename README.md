@@ -317,6 +317,9 @@ mvn checkstyle:check
 `mvn verify` also runs javadoc with `failOnWarnings`. A missing `@param`, `@return` or `@throws`
 on a public or protected member fails the build.
 
+It also runs the integration tests under `src/it`, which build three sample projects with the
+plugin bound to their own `verify` phase. Add `-Dinvoker.skip=true` to leave them out.
+
 ## Release
 
 1. Run the `Bump Version & Release` workflow with `patch`, `minor` or `major`. It writes the

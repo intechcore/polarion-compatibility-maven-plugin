@@ -13,7 +13,12 @@
 mvn clean verify                    # build and run tests
 mvn clean package -DskipTests       # build without tests
 mvn test -Dtest=CheckMojoTest       # run a single test class
+mvn verify -Dinvoker.skip=true      # skip the integration tests
+mvn verify -Dinvoker.test=legacy-bundle   # run one integration test project
 ```
+
+`mvn verify` runs the integration tests in `src/it`. Each one builds a sample project with the
+plugin, in its own Maven process, and a `verify.groovy` asserts what the build printed.
 
 ### Code Coverage
 
