@@ -1,0 +1,61 @@
+# CodeRabbit is free for public repositories. The value here is not the generic
+# review, it is the invariants below: a change which makes this plugin more
+# lenient than Polarion's own gate looks harmless and breaks the server.
+# See the Landmines section of CLAUDE.md.
+language: "en-US"
+tone_instructions: "Be direct and concise. No preamble, no praise. One idea per sentence. Never use an em-dash."
+
+reviews:
+  profile: "assertive"
+  request_changes_workflow: false
+  high_level_summary: true
+  auto_review:
+    enabled: true
+    auto_incremental_review: true
+    drafts: false
+    # Dependency bumps merge themselves once the checks pass. A review comment
+    # on each one is noise.
+    ignore_usernames:
+      - "renovate"
+      - "renovate[bot]"
+  path_filters:
+    - "!target/**"
+  path_instructions:
+    - path: "src/main/java/**/*.java"
+      instructions: >-
+        This plugin reimplements Polarion 2606's own compatibility gate
+        (com.polarion.alm.install.extensions.validator). Any change which makes it MORE LENIENT
+        than that gate is a bug: the build turns green and the server then refuses to start.
+        Stricter is acceptable.
+
+        Matching is a plain substring search: replace '/' with '.', then contains(). Not a
+        prefix match, not a word boundary match. Flag any prefix check, boundary check,
+        capitalization heuristic or new allow entry, even when it looks like a bug fix.
+        javax.transaction matching javax.transaction.xa.XAResource is correct behavior.
+
+        ForbiddenPackageVisitor.PARSING_OPTIONS must stay 6, which is SKIP_DEBUG | SKIP_FRAMES,
+        the value Polarion passes to ClassReader.accept.
+
+        Array parameters and return types carry no nullability annotation. Neither
+        '@NotNull byte[]' nor 'byte @NotNull []': the second breaks QDox inside
+        maven-plugin-plugin:descriptor. Do not suggest adding one.
+
+        Public types and methods need complete javadoc. maven-javadoc-plugin runs with
+        failOnWarnings, so a missing @param, @return or @throws fails the build.
+    - path: "src/main/resources/**"
+      instructions: >-
+        ruleset-jakarta.txt is ExtensionsScanner.DEFAULT_PACKAGES verbatim, 22 entries. It must
+        stay identical to Polarion's list. Additional Jakarta packages belong in
+        ruleset-jakarta-extended.txt, which is opt-in.
+    - path: "src/test/java/**/*.java"
+      instructions: >-
+        Line and branch coverage are gated at 100% by SonarCloud. New behavior needs a test that
+        covers both branches, not only the happy path.
+    - path: ".github/workflows/**"
+      instructions: >-
+        Every action must be pinned by full commit SHA with a version comment, never a floating
+        tag. Pass github.head_ref and github.base_ref through env, never inline in a run block.
+    - path: "**/*.md"
+      instructions: >-
+        No em-dashes. American spelling. Active voice, one idea per sentence. Keep the README in
+        step with the plugin parameters in CheckMojo.
