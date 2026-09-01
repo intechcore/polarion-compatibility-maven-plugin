@@ -9,6 +9,17 @@ reviews:
   profile: "assertive"
   request_changes_workflow: false
   high_level_summary: true
+  pre_merge_checks:
+    # The build already gates javadoc, and harder than this check does:
+    # maven-javadoc-plugin runs at verify with failOnWarnings, so every public and
+    # protected member of src/main/java carries complete tags or the build fails.
+    # This check cannot be scoped to a path, so it also counts JUnit methods and the
+    # integration test fixtures, where a name like
+    # execute_shouldFailOnAForbiddenReference already says what a comment would.
+    # Left on, it warns on nearly every pull request and trains the eye to skip the
+    # whole pre-merge block, including the checks worth reading.
+    docstrings:
+      mode: "off"
   auto_review:
     enabled: true
     auto_incremental_review: true
