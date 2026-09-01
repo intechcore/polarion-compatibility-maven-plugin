@@ -68,10 +68,10 @@
         <maven-plugin-plugin.version>3.15.2</maven-plugin-plugin.version>
 
         <jetbrains-annotations.version>26.1.0</jetbrains-annotations.version>
+        <asm.version>9.9.1</asm.version>
 
         <junit.version>6.1.3</junit.version>
         <assertj.version>3.27.7</assertj.version>
-        <mockito.version>5.23.0</mockito.version>
 
         <!-- SonarCloud -->
         <sonar.projectKey>intechcore_polarion-compatibility-maven-plugin</sonar.projectKey>
@@ -101,6 +101,13 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- Bytecode analysis. Polarion's own gate uses ASM, so the scan matches it. -->
+        <dependency>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm</artifactId>
+            <version>${asm.version}</version>
+        </dependency>
+
         <!-- Static analysis annotations -->
         <dependency>
             <groupId>org.jetbrains</groupId>
@@ -120,18 +127,6 @@
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
             <version>${assertj.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <version>${mockito.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-junit-jupiter</artifactId>
-            <version>${mockito.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -160,12 +155,6 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${maven-surefire-plugin.version}</version>
                 <configuration>
-                    <argLine>
-                        @{argLine}
-                        -XX:+EnableDynamicAgentLoading
-                        -Xshare:off
-                        -javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar
-                    </argLine>
                     <includes>
                         <include>**/*Test.java</include>
                         <include>**/*IT.java</include>

@@ -6,154 +6,219 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.PathMatcher;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Stream;
 
 /**
- * Fails the build when compiled classes reference a legacy {@code javax} package.
+ * Fails the build when the packaged jar, or any jar nested inside it, refers to a forbidden package.
  *
- * <p>The goal scans the module's own classes and every jar below the build directory, which is
- * where a Polarion extension collects its bundled libraries.</p>
+ * <p>Example usage in pom.xml:</p>
+ * <pre>{@code
+ * <plugin>
+ *     <groupId>com.intechcore</groupId>
+ *     <artifactId>polarion-compatibility-maven-plugin</artifactId>
+ *     <executions>
+ *         <execution>
+ *             <goals>
+ *                 <goal>check</goal>
+ *             </goals>
+ *         </execution>
+ *     </executions>
+ * </plugin>
+ * }</pre>
  */
 @Mojo(name = "check", defaultPhase = LifecyclePhase.VERIFY, threadSafe = true)
+// Maven's configurator assigns every @Parameter field by reflection. No static analysis can
+// see that, so each one otherwise reports as never assigned or as an empty collection.
+@SuppressWarnings({"unused", "MismatchedQueryAndUpdateOfCollection"})
 public class CheckMojo extends AbstractMojo {
 
-    /** Package prefixes rejected by Polarion 2606 unless the plugin is configured otherwise. */
-    public static final List<String> DEFAULT_FORBIDDEN_PACKAGES = List.of(
-            "javax.activation",
-            "javax.annotation",
-            "javax.batch",
-            "javax.decorator",
-            "javax.ejb",
-            "javax.el",
-            "javax.enterprise",
-            "javax.faces",
-            "javax.inject",
-            "javax.interceptor",
-            "javax.jms",
-            "javax.json",
-            "javax.jws",
-            "javax.mail",
-            "javax.persistence",
-            "javax.resource",
-            "javax.security.auth.message",
-            "javax.security.enterprise",
-            "javax.security.jacc",
-            "javax.servlet",
-            "javax.transaction",
-            "javax.validation",
-            "javax.websocket",
-            "javax.ws.rs",
-            "javax.xml.bind",
-            "javax.xml.soap",
-            "javax.xml.ws");
+    /**
+     * Rulesets used when {@code rulesets} is not configured at all.
+     */
+    private static final List<String> DEFAULT_RULESETS = List.of("jakarta");
 
-    /** Package prefixes that stay allowed although a forbidden prefix covers them. */
-    public static final List<String> DEFAULT_ALLOWED_PACKAGES = List.of("javax.annotation.processing");
+    @Parameter(defaultValue = "${project.packaging}", readonly = true)
+    private String packaging;
 
-    /** Skips the goal entirely. */
-    @Parameter(property = "polarion.compatibility.skip", defaultValue = "false")
-    private boolean skip;
+    /**
+     * The jar to scan. Defaults to the artifact this project produces.
+     */
+    @Parameter(property = "polarion.compatibility.jarFile", defaultValue = "${project.build.directory}/${project.build.finalName}.jar")
+    private File jarFile;
 
-    /** Reports findings as warnings instead of failing the build. */
+    /**
+     * Bundled rulesets to load: {@code jakarta}, {@code jakarta-extended}. Omitting the element
+     * loads {@code jakarta}. An empty element loads none, which is how a project runs on its own
+     * {@code rulesetFiles} or {@code rules} alone.
+     */
+    @Parameter
+    private List<String> rulesets;
+
+    /**
+     * Ruleset files in the project, read after the bundled rulesets.
+     */
+    @Parameter
+    private List<File> rulesetFiles;
+
+    /**
+     * Extra rules in ruleset line format, applied last so they override everything else.
+     * Use {@code javax.foo -> jakarta.foo} to forbid and {@code !javax.foo.bar} to allow.
+     */
+    @Parameter
+    private List<String> rules;
+
+    /**
+     * Nested jars to skip, as globs matched against the jar name or the full nested path,
+     * for example {@code fop-core-*.jar}.
+     */
+    @Parameter
+    private List<String> excludedJars;
+
+    /**
+     * Whether to scan compiled classes.
+     */
+    @Parameter(property = "polarion.compatibility.checkClasses", defaultValue = "true")
+    private boolean checkClasses;
+
+    /**
+     * Whether to check the OSGi headers of the bundle manifest.
+     */
+    @Parameter(property = "polarion.compatibility.checkManifest", defaultValue = "true")
+    private boolean checkManifest;
+
+    /**
+     * Whether to check deployment descriptors for a legacy Java EE schema.
+     */
+    @Parameter(property = "polarion.compatibility.checkDescriptors", defaultValue = "true")
+    private boolean checkDescriptors;
+
+    /**
+     * How deep nested jars are followed.
+     */
+    @Parameter(property = "polarion.compatibility.maxNestingDepth", defaultValue = "5")
+    private int maxNestingDepth;
+
+    /**
+     * How many offending classes to list per forbidden package.
+     */
+    @Parameter(property = "polarion.compatibility.maxSourcesPerPackage", defaultValue = "5")
+    private int maxSourcesPerPackage;
+
+    /**
+     * Whether a finding fails the build. Set 'false' to survey a project without breaking it.
+     */
     @Parameter(property = "polarion.compatibility.failOnViolation", defaultValue = "true")
     private boolean failOnViolation;
 
-    /** Directory holding the module's own compiled classes. */
-    @Parameter(defaultValue = "${project.build.outputDirectory}")
-    private File classesDirectory;
+    /**
+     * Whether to fail when the jar to scan does not exist.
+     */
+    @Parameter(property = "polarion.compatibility.failOnMissingJar", defaultValue = "false")
+    private boolean failOnMissingJar;
 
-    /** Directory searched recursively for bundled jars. */
-    @Parameter(defaultValue = "${project.build.directory}")
-    private File librariesDirectory;
-
-    /** Package prefixes to reject. Replaces {@link #DEFAULT_FORBIDDEN_PACKAGES} when set. */
-    @Parameter
-    private List<String> forbiddenPackages;
-
-    /** Package prefixes to keep allowed. Replaces {@link #DEFAULT_ALLOWED_PACKAGES} when set. */
-    @Parameter
-    private List<String> allowedPackages;
-
-    /** Glob patterns matched against a jar file name. A match excludes the jar from the scan. */
-    @Parameter
-    private List<String> excludedJarNames;
+    /**
+     * Skips the check entirely.
+     */
+    @Parameter(property = "polarion.compatibility.skip", defaultValue = "false")
+    private boolean skip;
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        if (this.skip) {
-            getLog().info("Polarion compatibility check skipped");
+        if (skip) {
+            getLog().info("Forbidden packages check skipped");
             return;
         }
+        if ("pom".equals(packaging)) {
+            getLog().debug("Forbidden packages check skipped for pom packaging");
+            return;
+        }
+        if (jarFile == null || !jarFile.isFile()) {
+            handleMissingJar();
+            return;
+        }
+        PackageRules packageRules = loadRules();
+        if (packageRules.isEmpty()) {
+            getLog().warn("Forbidden packages check has no rules, nothing to do");
+            return;
+        }
+        report(scan(packageRules));
+    }
 
-        CompatibilityScanner scanner = new CompatibilityScanner(
-                this.forbiddenPackages == null || this.forbiddenPackages.isEmpty() ? DEFAULT_FORBIDDEN_PACKAGES : this.forbiddenPackages,
-                this.allowedPackages == null ? DEFAULT_ALLOWED_PACKAGES : this.allowedPackages);
+    private void handleMissingJar() throws MojoExecutionException {
+        String message = "No jar to scan at " + jarFile;
+        if (failOnMissingJar) {
+            throw new MojoExecutionException(message);
+        }
+        getLog().info(message + ", forbidden packages check skipped");
+    }
 
-        List<ForbiddenReference> found;
+    private @NotNull BundleScanner.ScanResult scan(@NotNull PackageRules packageRules) throws MojoExecutionException {
+        BundleScanner scanner = BundleScanner.builder(packageRules)
+                .excludedJars(new GlobMatcher(excludedJars == null ? List.of() : excludedJars))
+                .maxDepth(maxNestingDepth)
+                .checkClasses(checkClasses)
+                .checkManifest(checkManifest)
+                .checkDescriptors(checkDescriptors)
+                .debug(message -> getLog().debug(message))
+                .build();
+        Path path = jarFile.toPath();
+        long started = System.nanoTime();
         try {
-            found = scan(scanner);
+            BundleScanner.ScanResult result = scanner.scan(path);
+            long millis = (System.nanoTime() - started) / 1_000_000L;
+            getLog().info(String.format("Scanned %s: %d classes in %d nested jar(s), %d ms",
+                    path.getFileName(), result.classesScanned(), result.jarsScanned(), millis));
+            return result;
         } catch (IOException e) {
-            throw new MojoExecutionException("Failed to scan for javax references", e);
-        }
-
-        report(found);
-    }
-
-    private List<ForbiddenReference> scan(CompatibilityScanner scanner) throws IOException {
-        List<ForbiddenReference> found = new ArrayList<>();
-        if (this.classesDirectory != null) {
-            found.addAll(scanner.scanDirectory(this.classesDirectory.toPath()));
-        }
-        for (Path jar : collectJars()) {
-            getLog().debug("Scanning " + jar);
-            found.addAll(scanner.scanJar(jar));
-        }
-        return found;
-    }
-
-    private List<Path> collectJars() throws IOException {
-        if (this.librariesDirectory == null || !this.librariesDirectory.isDirectory()) {
-            return List.of();
-        }
-        List<PathMatcher> exclusions = buildExclusions();
-        try (Stream<Path> files = Files.walk(this.librariesDirectory.toPath())) {
-            return files.filter(Files::isRegularFile)
-                    .filter(path -> path.getFileName().toString().endsWith(".jar"))
-                    .filter(path -> exclusions.stream().noneMatch(matcher -> matcher.matches(path.getFileName())))
-                    .toList();
+            throw new MojoExecutionException("Cannot scan " + path, e);
         }
     }
 
-    private List<PathMatcher> buildExclusions() {
-        if (this.excludedJarNames == null) {
-            return List.of();
-        }
-        return this.excludedJarNames.stream()
-                .map(pattern -> FileSystems.getDefault().getPathMatcher("glob:" + pattern))
-                .toList();
-    }
+    private void report(@NotNull BundleScanner.ScanResult result) throws MojoFailureException {
+        result.excludedJars().forEach(jar -> getLog().info("Excluded from the scan: " + jar));
+        result.skippedJars().forEach(jar -> getLog().warn("Not scanned, nesting limit reached: " + jar));
+        result.unreadableClasses().forEach(entry -> getLog().warn("Not scanned, unreadable class: " + entry));
 
-    private void report(List<ForbiddenReference> found) throws MojoFailureException {
-        if (found.isEmpty()) {
-            getLog().info("Polarion compatibility check passed: no javax references found");
+        List<Violation> violations = result.violations();
+        if (violations.isEmpty()) {
+            getLog().info("No forbidden packages found");
             return;
         }
-
-        String summary = found.size() + " javax reference(s) rejected by Polarion";
-        if (this.failOnViolation) {
-            found.forEach(reference -> getLog().error(reference.toString()));
-            throw new MojoFailureException(summary);
+        ViolationReport report = new ViolationReport(violations, maxSourcesPerPackage);
+        List<String> lines = new ArrayList<>();
+        lines.add("Forbidden packages found in " + jarFile.getName());
+        lines.addAll(report.lines());
+        lines.add(report.summary());
+        if (failOnViolation) {
+            lines.forEach(line -> getLog().error(line));
+            getLog().error("Upgrade or replace the dependency, or exclude the jar with <excludedJars>");
+            throw new MojoFailureException("Forbidden packages found in " + jarFile.getName() + ": "
+                    + report.summary() + ": " + String.join(", ", report.subjects()));
         }
-        found.forEach(reference -> getLog().warn(reference.toString()));
-        getLog().warn(summary);
+        lines.forEach(line -> getLog().warn(line));
+    }
+
+    private @NotNull PackageRules loadRules() throws MojoExecutionException {
+        PackageRules.Builder builder = PackageRules.builder();
+        try {
+            for (String ruleset : rulesets == null ? DEFAULT_RULESETS : rulesets) {
+                RulesetLoader.loadBuiltin(ruleset, builder);
+            }
+            for (File file : rulesetFiles == null ? List.<File>of() : rulesetFiles) {
+                RulesetLoader.loadFile(file.toPath(), builder);
+            }
+        } catch (IOException e) {
+            throw new MojoExecutionException("Cannot load rules", e);
+        }
+        if (rules != null) {
+            RulesetLoader.loadLines(rules, builder, "<rules> configuration");
+        }
+        return builder.build();
     }
 }

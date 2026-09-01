@@ -1,0 +1,20 @@
+# Jakarta EE packages which Polarion's own list misses.
+#
+# Load this on top of the jakarta ruleset to be stricter than Polarion's startup gate:
+#
+#   <rulesets>
+#       <ruleset>jakarta</ruleset>
+#       <ruleset>jakarta-extended</ruleset>
+#   </rulesets>
+#
+# Every entry moved to jakarta.* in Jakarta EE 9, so a bundle using one breaks on Tomcat 11
+# even though ExtensionsScanner.DEFAULT_PACKAGES does not list it. Polarion will start, and
+# the extension will fail later with NoClassDefFoundError.
+
+javax.batch -> jakarta.batch
+javax.decorator -> jakarta.decorator
+javax.interceptor -> jakarta.interceptor
+javax.security.jacc -> jakarta.security.jacc
+javax.xml.registry -> jakarta.xml.registry
+javax.xml.rpc -> jakarta.xml.rpc
+javax.xml.ws -> jakarta.xml.ws

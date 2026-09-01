@@ -1,0 +1,60 @@
+# Jakarta EE ruleset.
+#
+# These 22 entries are exactly ExtensionsScanner.DEFAULT_PACKAGES from Polarion 2606
+# (com.polarion.alm.install.extensions.validator.ExtensionsScanner). Keep the two lists
+# identical: the point of this ruleset is that a build which passes here also passes
+# Polarion's startup gate. Adding an entry here makes the build stricter than the gate,
+# removing one makes it useless.
+#
+# Syntax:
+#   <package> -> <replacement>   forbidden, with the suggested replacement
+#   <package>                    forbidden, no replacement suggested
+#   !<package>                   allow entry, suppresses a forbidden match
+#   # comment
+#
+# Matching is a substring search after slashes are normalized to dots, the same as Polarion.
+# There is no word boundary, so "javax.transaction" also matches "javax.transaction.xa".
+
+javax.activation -> jakarta.activation
+javax.annotation -> jakarta.annotation
+javax.ejb -> jakarta.ejb
+javax.el -> jakarta.el
+javax.enterprise -> jakarta.enterprise
+javax.faces -> jakarta.faces
+javax.inject -> jakarta.inject
+javax.jms -> jakarta.jms
+javax.json -> jakarta.json
+javax.jws -> jakarta.jws
+javax.mail -> jakarta.mail
+javax.persistence -> jakarta.persistence
+javax.resource -> jakarta.resource
+javax.security.auth.message -> jakarta.security.auth.message
+javax.security.enterprise -> jakarta.security.enterprise
+javax.servlet -> jakarta.servlet
+javax.transaction -> jakarta.transaction
+javax.validation -> jakarta.validation
+javax.websocket -> jakarta.websocket
+javax.ws.rs -> jakarta.ws.rs
+javax.xml.bind -> jakarta.xml.bind
+javax.xml.soap -> jakarta.xml.soap
+
+# No allow entries are shipped, on purpose.
+#
+# Substring matching means "javax.annotation" also hits the JDK package
+# javax.annotation.processing (module java.compiler), and "javax.transaction" also hits
+# javax.transaction.xa (module java.sql). Both are false positives in principle. Polarion
+# rejects them anyway, so allow-listing them here would let a build pass that the server
+# then refuses to start. If a bundle really needs one, add the allow entry in the project:
+#
+#   <rules>
+#       <rule>!javax.transaction.xa</rule>
+#   </rules>
+#
+# and be aware the bundle will still fail Polarion's gate.
+#
+# Most javax packages need no rule either way, because no forbidden entry is a substring of
+# them: javax.crypto, javax.imageio, javax.management, javax.naming, javax.net, javax.print,
+# javax.rmi, javax.script, javax.security.auth, javax.sound, javax.sql, javax.swing,
+# javax.tools, javax.lang.model, javax.xml.parsers, javax.xml.transform, javax.xml.stream,
+# javax.xml.xpath, javax.xml.crypto, javax.xml.namespace, javax.xml.datatype,
+# javax.cache, javax.measure, javax.money, javax.media.jai.
