@@ -170,15 +170,6 @@ the behavior against the `com.polarion.alm.install:install` artifact for the Pol
 you target, not against these notes. `javap -p -c` on that jar shows the current member names
 and the parsing options.
 
-## Do not bundle `com.polarion.alm.install:install` into an extension
-
-At `runtime` scope that artifact is copied into `webapp/<context>/WEB-INF/lib` by the generic
-parent's `copy-dependencies`, and it fails the scan. `ExtensionsScanner` builds its package
-list from string literals, so all 22 names sit in the class as `ldc` constants, and the visitor
-checks `ldc` constants. Polarion then refuses to load the extension. Confirmed both ways: this
-plugin reports 22 violations, and Polarion's own checker returns `compatible=false`. Use
-`provided` or `test` scope if the artifact is needed at all.
-
 ## Where this plugin differs from Polarion, on purpose
 
 |                        | Polarion                 | This plugin                                                             |
