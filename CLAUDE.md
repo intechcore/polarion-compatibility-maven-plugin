@@ -9,6 +9,10 @@ Polarion's own compatibility gate. It scans the packaged jar and its nested jars
 reimplements the Jakarta compatibility scan Polarion 2606 runs at startup, so a green build
 means a server which boots.
 
+**Maven Central:** `com.intechcore:polarion-compatibility-maven-plugin`
+**GitHub:** `git@github.com:intechcore/polarion-compatibility-maven-plugin.git`
+**SonarCloud:** `intechcore_polarion-compatibility-maven-plugin`
+
 ## Build Commands
 
 ```bash
