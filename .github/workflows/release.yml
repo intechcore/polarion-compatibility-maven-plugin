@@ -6,29 +6,8 @@ on:
       - "v*"
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        java-version: ["21"]
-
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Set up JDK ${{ matrix.java-version }}
-        uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
-        with:
-          java-version: ${{ matrix.java-version }}
-          distribution: "temurin"
-          cache: "maven"
-
-      - name: Build and test
-        run: mvn -B clean verify
-
   publish:
     runs-on: ubuntu-latest
-    needs: test
     permissions:
       contents: write
 
@@ -42,13 +21,16 @@ jobs:
           distribution: "temurin"
           cache: "maven"
           server-id: central
-          server-username: MAVEN_USERNAME
-          server-password: MAVEN_PASSWORD
+          server-username-env-var: MAVEN_USERNAME
+          server-password-env-var: MAVEN_PASSWORD
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
-          gpg-passphrase: MAVEN_GPG_PASSPHRASE
+          gpg-passphrase-env-var: MAVEN_GPG_PASSPHRASE
 
-      - name: Publish to Maven Central
-        run: mvn -B deploy -Prelease -DskipTests
+      # deploy walks the whole lifecycle, so the tests run here. Running them in
+      # a separate job would build the project twice and publish a tree other
+      # than the one that was tested.
+      - name: Test and publish to Maven Central
+        run: mvn -B clean deploy -Prelease
         env:
           MAVEN_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.SONATYPE_TOKEN }}
