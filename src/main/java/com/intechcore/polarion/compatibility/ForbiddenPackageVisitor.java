@@ -35,7 +35,11 @@ public final class ForbiddenPackageVisitor extends ClassVisitor {
      */
     public static final int PARSING_OPTIONS = 6;
 
-    private static final int API = Opcodes.ASM9;
+    /**
+     * ASM API level. Named {@code ASM_API} rather than {@code API}, because {@link ClassVisitor}
+     * already declares a protected {@code api} field and the two would differ only by case.
+     */
+    private static final int ASM_API = Opcodes.ASM9;
 
     private final PackageRules rules;
     private final Map<String, String> detections = new LinkedHashMap<>();
@@ -45,7 +49,7 @@ public final class ForbiddenPackageVisitor extends ClassVisitor {
      * Creates a visitor which matches against the given rules.
      */
     public ForbiddenPackageVisitor(@NotNull PackageRules rules) {
-        super(API);
+        super(ASM_API);
         this.rules = rules;
     }
 
@@ -125,7 +129,7 @@ public final class ForbiddenPackageVisitor extends ClassVisitor {
     private final class DetectionFieldVisitor extends FieldVisitor {
 
         private DetectionFieldVisitor() {
-            super(API);
+            super(ASM_API);
         }
 
         @Override
@@ -145,7 +149,7 @@ public final class ForbiddenPackageVisitor extends ClassVisitor {
     private final class DetectionMethodVisitor extends MethodVisitor {
 
         private DetectionMethodVisitor() {
-            super(API);
+            super(ASM_API);
         }
 
         @Override
