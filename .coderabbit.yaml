@@ -15,7 +15,7 @@ reviews:
     # protected member of src/main/java carries complete tags or the build fails.
     # This check cannot be scoped to a path, so it also counts JUnit methods and the
     # integration test fixtures, where a name like
-    # execute_shouldFailOnAForbiddenReference already says what a comment would.
+    # execute_shouldFailOnAForbiddenReference already says what a comment would say.
     # Left on, it warns on nearly every pull request and trains the eye to skip the
     # whole pre-merge block, including the checks worth reading.
     docstrings:
