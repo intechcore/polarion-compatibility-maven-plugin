@@ -6,7 +6,7 @@
 
     <groupId>com.intechcore</groupId>
     <artifactId>polarion-compatibility-maven-plugin</artifactId>
-    <version>0.1.1</version>
+    <version>0.1.2-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
 
     <!-- Maven 3 reads the minimum from here. The requiredMavenVersion below is the Maven 4
@@ -60,7 +60,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <!-- A fixed timestamp makes the published jars byte for byte reproducible. The bump
              workflow rewrites it at release time, so it names the moment of the release. -->
-        <project.build.outputTimestamp>2026-09-01T20:36:06Z</project.build.outputTimestamp>
+        <project.build.outputTimestamp>2026-09-01T20:43:50Z</project.build.outputTimestamp>
         <maven.compiler.release>21</maven.compiler.release>
         <maven.min.version>3.6.3</maven.min.version>
 
