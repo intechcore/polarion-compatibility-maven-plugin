@@ -19,6 +19,7 @@ public final class ViolationReport {
     /**
      * Creates a report over the given findings.
      *
+     * @param violations           the findings to render
      * @param maxSourcesPerSubject how many offending classes to list per forbidden package
      */
     public ViolationReport(@NotNull List<Violation> violations, int maxSourcesPerSubject) {
@@ -28,6 +29,8 @@ public final class ViolationReport {
 
     /**
      * Returns the report as a list of log lines.
+     *
+     * @return the lines, in print order
      */
     public @NotNull List<String> lines() {
         List<String> lines = new ArrayList<>();
@@ -64,6 +67,8 @@ public final class ViolationReport {
 
     /**
      * One line summary of the findings.
+     *
+     * @return the summary line
      */
     public @NotNull String summary() {
         return violations.size() + " reference(s) to " + subjects().size() + " forbidden package(s) or namespace(s)";
@@ -73,6 +78,8 @@ public final class ViolationReport {
      * The distinct forbidden packages and namespaces found, sorted.
      *
      * <p>The build failure message names them, because a CI log often shows only that line.</p>
+     *
+     * @return the subjects, sorted
      */
     public @NotNull List<String> subjects() {
         return violations.stream().map(Violation::subject).distinct().sorted().toList();

@@ -27,6 +27,8 @@ public record Violation(@NotNull Kind kind,
      * <p>The detail is part of the key so that a manifest naming the same package in two
      * headers is reported twice, once per header. A class reports a package once, because
      * the scanner already collapses the references it holds.</p>
+     *
+     * @return the key
      */
     public @NotNull String dedupKey() {
         return kind + "|" + subject + "|" + container + "|" + source + "|" + detail;
@@ -65,6 +67,8 @@ public record Violation(@NotNull Kind kind,
 
         /**
          * Heading used in the report.
+         *
+         * @return the heading
          */
         public @NotNull String title() {
             return title;

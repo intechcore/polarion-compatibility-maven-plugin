@@ -30,6 +30,12 @@ public final class ManifestChecker {
 
     /**
      * Returns a finding for every main attribute naming a forbidden package.
+     *
+     * @param content   the raw manifest
+     * @param rules     the packages the check rejects
+     * @param container the jar holding the manifest
+     * @return the findings, empty when no attribute names a forbidden package
+     * @throws IOException when the manifest cannot be parsed
      */
     public static @NotNull List<Violation> check(byte[] content, @NotNull PackageRules rules,
                                                  @NotNull String container) throws IOException {

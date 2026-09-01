@@ -186,6 +186,27 @@
                 <artifactId>sonar-maven-plugin</artifactId>
                 <version>${sonar-maven-plugin.version}</version>
             </plugin>
+            <!-- The javadoc jar goes to Maven Central, so a missing tag is a published
+                 defect. The plugin used to run in the release profile alone, which meant
+                 the warnings first appeared during a release. Check on every build and
+                 fail on a warning; the release profile adds only the jar goal. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>${maven-javadoc-plugin.version}</version>
+                <configuration>
+                    <failOnWarnings>true</failOnWarnings>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>check-javadoc</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>javadoc-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
@@ -230,7 +251,6 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-javadoc-plugin</artifactId>
-                        <version>${maven-javadoc-plugin.version}</version>
                         <executions>
                             <execution>
                                 <id>attach-javadocs</id>

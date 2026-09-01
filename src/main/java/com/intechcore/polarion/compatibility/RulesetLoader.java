@@ -32,6 +32,8 @@ public final class RulesetLoader {
     /**
      * Loads a ruleset bundled with the plugin, for example {@code jakarta}.
      *
+     * @param name    the ruleset name
+     * @param builder collects the rules the ruleset declares
      * @throws IOException when no ruleset with that name exists
      */
     public static void loadBuiltin(@NotNull String name, @NotNull PackageRules.Builder builder) throws IOException {
@@ -46,6 +48,10 @@ public final class RulesetLoader {
 
     /**
      * Loads a ruleset from a file in the project.
+     *
+     * @param file    the ruleset file
+     * @param builder collects the rules the file declares
+     * @throws IOException when the file cannot be read
      */
     public static void loadFile(@NotNull Path file, @NotNull PackageRules.Builder builder) throws IOException {
         try (BufferedReader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
@@ -55,6 +61,10 @@ public final class RulesetLoader {
 
     /**
      * Adds configuration entries which use the same line format as a ruleset file.
+     *
+     * @param lines   the entries
+     * @param builder collects the rules the entries declare
+     * @param origin  names the source of the entries in an error message
      */
     public static void loadLines(@NotNull List<String> lines, @NotNull PackageRules.Builder builder, @NotNull String origin) {
         int number = 0;

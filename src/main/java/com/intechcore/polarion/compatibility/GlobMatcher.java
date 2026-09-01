@@ -20,6 +20,8 @@ public final class GlobMatcher {
 
     /**
      * Compiles the given globs. An empty list matches nothing.
+     *
+     * @param globs the patterns to compile
      */
     public GlobMatcher(@NotNull List<String> globs) {
         for (String glob : globs) {
@@ -56,6 +58,9 @@ public final class GlobMatcher {
 
     /**
      * Returns true when the path or its file name matches one of the globs.
+     *
+     * @param path the nested path of the jar
+     * @return whether a glob matches
      */
     public boolean matches(@NotNull String path) {
         String fileName = path.substring(path.lastIndexOf('/') + 1);
@@ -70,6 +75,8 @@ public final class GlobMatcher {
 
     /**
      * Returns true when no glob was configured.
+     *
+     * @return whether the matcher holds no pattern
      */
     public boolean isEmpty() {
         return patterns.isEmpty();

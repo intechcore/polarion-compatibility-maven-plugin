@@ -128,6 +128,12 @@ public class CheckMojo extends AbstractMojo {
     @Parameter(property = "polarion.compatibility.skip", defaultValue = "false")
     private boolean skip;
 
+    /**
+     * Creates the goal. Maven instantiates it and injects the parameters above.
+     */
+    public CheckMojo() {
+    }
+
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         if (skip) {
