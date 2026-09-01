@@ -55,6 +55,9 @@ public final class BundleScanner {
 
     /**
      * Creates a scanner builder for the given rules.
+     *
+     * @param rules the packages the scan rejects
+     * @return a builder which produces a scanner over those rules
      */
     public static @NotNull Builder builder(@NotNull PackageRules rules) {
         return new Builder(rules);
@@ -62,6 +65,10 @@ public final class BundleScanner {
 
     /**
      * Scans a jar file and returns everything found.
+     *
+     * @param jarFile the jar to scan
+     * @return the findings, together with the counters the scan produced
+     * @throws IOException when the jar cannot be read
      */
     public @NotNull ScanResult scan(@NotNull Path jarFile) throws IOException {
         ScanResult result = new ScanResult();
@@ -150,6 +157,12 @@ public final class BundleScanner {
         private int classesScanned;
         private int jarsScanned;
 
+        /**
+         * Creates an empty result. Only the scan fills it in.
+         */
+        private ScanResult() {
+        }
+
         private void add(@NotNull Violation violation) {
             violations.putIfAbsent(violation.dedupKey(), violation);
         }
@@ -160,6 +173,8 @@ public final class BundleScanner {
 
         /**
          * The findings, one per forbidden package per source, in discovery order.
+         *
+         * @return an immutable copy of the findings
          */
         public @NotNull List<Violation> violations() {
             return List.copyOf(violations.values());
@@ -167,6 +182,8 @@ public final class BundleScanner {
 
         /**
          * Nested jars skipped because of an exclusion glob.
+         *
+         * @return the paths of those jars
          */
         public @NotNull List<String> excludedJars() {
             return List.copyOf(excludedJars);
@@ -174,6 +191,8 @@ public final class BundleScanner {
 
         /**
          * Nested jars skipped because the nesting limit was reached.
+         *
+         * @return the paths of those jars
          */
         public @NotNull List<String> skippedJars() {
             return List.copyOf(skippedJars);
@@ -181,6 +200,8 @@ public final class BundleScanner {
 
         /**
          * Class entries which could not be parsed.
+         *
+         * @return the names of those entries
          */
         public @NotNull List<String> unreadableClasses() {
             return List.copyOf(unreadableClasses);
@@ -188,6 +209,8 @@ public final class BundleScanner {
 
         /**
          * Number of class entries read.
+         *
+         * @return the count
          */
         public int classesScanned() {
             return classesScanned;
@@ -195,6 +218,8 @@ public final class BundleScanner {
 
         /**
          * Number of nested jars opened.
+         *
+         * @return the count
          */
         public int jarsScanned() {
             return jarsScanned;
@@ -221,6 +246,9 @@ public final class BundleScanner {
 
         /**
          * Sets the globs of nested jars to skip.
+         *
+         * @param matcher the compiled globs, or null to skip nothing
+         * @return this builder
          */
         public @NotNull Builder excludedJars(@Nullable GlobMatcher matcher) {
             this.excludedJars = matcher == null ? new GlobMatcher(List.of()) : matcher;
@@ -229,6 +257,9 @@ public final class BundleScanner {
 
         /**
          * Sets how deep nested jars are followed.
+         *
+         * @param depth the nesting limit
+         * @return this builder
          */
         public @NotNull Builder maxDepth(int depth) {
             this.maxDepth = depth;
@@ -237,6 +268,9 @@ public final class BundleScanner {
 
         /**
          * Enables or disables the class reference check.
+         *
+         * @param enabled whether the check runs
+         * @return this builder
          */
         public @NotNull Builder checkClasses(boolean enabled) {
             this.checkClasses = enabled;
@@ -245,6 +279,9 @@ public final class BundleScanner {
 
         /**
          * Enables or disables the OSGi manifest check.
+         *
+         * @param enabled whether the check runs
+         * @return this builder
          */
         public @NotNull Builder checkManifest(boolean enabled) {
             this.checkManifest = enabled;
@@ -253,6 +290,9 @@ public final class BundleScanner {
 
         /**
          * Enables or disables the deployment descriptor check.
+         *
+         * @param enabled whether the check runs
+         * @return this builder
          */
         public @NotNull Builder checkDescriptors(boolean enabled) {
             this.checkDescriptors = enabled;
@@ -261,6 +301,9 @@ public final class BundleScanner {
 
         /**
          * Sets the sink for diagnostic messages.
+         *
+         * @param sink receives one message per skipped or unreadable entry
+         * @return this builder
          */
         public @NotNull Builder debug(@NotNull Consumer<String> sink) {
             this.debug = sink;
@@ -269,6 +312,8 @@ public final class BundleScanner {
 
         /**
          * Builds the scanner.
+         *
+         * @return a scanner configured by this builder
          */
         public @NotNull BundleScanner build() {
             return new BundleScanner(this);

@@ -47,6 +47,8 @@ public final class ForbiddenPackageVisitor extends ClassVisitor {
 
     /**
      * Creates a visitor which matches against the given rules.
+     *
+     * @param rules the packages the visitor reports
      */
     public ForbiddenPackageVisitor(@NotNull PackageRules rules) {
         super(ASM_API);
@@ -55,6 +57,8 @@ public final class ForbiddenPackageVisitor extends ClassVisitor {
 
     /**
      * Forbidden package to the value which matched it, in discovery order.
+     *
+     * @return the detections, empty when the class refers to none
      */
     public @NotNull Map<String, String> detections() {
         return detections;
@@ -62,6 +66,8 @@ public final class ForbiddenPackageVisitor extends ClassVisitor {
 
     /**
      * Name of the visited class in dotted form, or null when it was not visited.
+     *
+     * @return the class name, or null
      */
     public @Nullable String className() {
         return className;

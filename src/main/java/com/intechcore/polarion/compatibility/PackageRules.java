@@ -36,6 +36,8 @@ public final class PackageRules {
 
     /**
      * Creates rules from a builder.
+     *
+     * @return an empty builder
      */
     public static @NotNull Builder builder() {
         return new Builder();
@@ -43,6 +45,8 @@ public final class PackageRules {
 
     /**
      * Returns true when no package is forbidden.
+     *
+     * @return whether the rules forbid nothing
      */
     public boolean isEmpty() {
         return forbidden.isEmpty();
@@ -53,6 +57,7 @@ public final class PackageRules {
      *
      * @param value a class name, descriptor, signature, string constant or manifest header value,
      *              in either internal or dotted form
+     * @return the matching rule, or null when the value refers to no forbidden package
      */
     public @Nullable Rule match(@Nullable String value) {
         if (value == null || value.isEmpty()) {
@@ -78,6 +83,8 @@ public final class PackageRules {
 
     /**
      * All forbidden packages, keyed by package name, sorted for stable reporting.
+     *
+     * @return the rules
      */
     public @NotNull Map<String, Rule> all() {
         return new TreeMap<>(forbidden);
@@ -105,6 +112,9 @@ public final class PackageRules {
 
         /**
          * Adds a forbidden package with an optional replacement suggestion.
+         *
+         * @param packageName the package which must not be referenced
+         * @param replacement the suggested replacement, or null when none is known
          */
         public void forbid(@NotNull String packageName, @Nullable String replacement) {
             allowed.remove(packageName);
@@ -113,6 +123,8 @@ public final class PackageRules {
 
         /**
          * Adds an allow entry which suppresses a forbidden match.
+         *
+         * @param packageName the package to allow
          */
         public void allow(@NotNull String packageName) {
             forbidden.remove(packageName);
@@ -121,6 +133,8 @@ public final class PackageRules {
 
         /**
          * Builds the immutable rule set.
+         *
+         * @return the rules collected so far
          */
         public @NotNull PackageRules build() {
             return new PackageRules(forbidden, new TreeSet<>(allowed));

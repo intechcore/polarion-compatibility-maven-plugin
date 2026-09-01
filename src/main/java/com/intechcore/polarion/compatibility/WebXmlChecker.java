@@ -35,6 +35,9 @@ public final class WebXmlChecker {
 
     /**
      * Returns true when the entry is a deployment descriptor this check applies to.
+     *
+     * @param entryName the path of the entry inside the jar
+     * @return whether the entry is a deployment descriptor
      */
     public static boolean isDescriptor(@NotNull String entryName) {
         String name = fileName(entryName);
@@ -43,6 +46,9 @@ public final class WebXmlChecker {
 
     /**
      * Returns true when the entry is a JSP page.
+     *
+     * @param entryName the path of the entry inside the jar
+     * @return whether the entry is a JSP page
      */
     public static boolean isJsp(@NotNull String entryName) {
         return fileName(entryName).endsWith(".jsp");
@@ -50,6 +56,11 @@ public final class WebXmlChecker {
 
     /**
      * Returns a finding for every legacy namespace declared in the descriptor.
+     *
+     * @param content   the raw descriptor
+     * @param container the jar holding the descriptor
+     * @param entryName the path of the descriptor inside the jar
+     * @return the findings, empty when the descriptor declares no legacy namespace
      */
     public static @NotNull List<Violation> check(byte[] content, @NotNull String container, @NotNull String entryName) {
         String text = new String(content, StandardCharsets.UTF_8);
@@ -65,6 +76,12 @@ public final class WebXmlChecker {
 
     /**
      * Returns a finding when the JSP page mentions a forbidden package.
+     *
+     * @param content   the raw page
+     * @param rules     the packages the check rejects
+     * @param container the jar holding the page
+     * @param entryName the path of the page inside the jar
+     * @return the finding, or an empty list when the page mentions none
      */
     public static @NotNull List<Violation> checkJsp(byte[] content, @NotNull PackageRules rules,
                                                     @NotNull String container, @NotNull String entryName) {
