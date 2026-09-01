@@ -9,6 +9,13 @@
     <version>0.1.1-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
 
+    <!-- Maven 3 reads the minimum from here. The requiredMavenVersion below is the Maven 4
+         mechanism, which that release honours in preference to this element and earlier
+         releases ignore. Both are needed to state one requirement to every Maven. -->
+    <prerequisites>
+        <maven>${maven.min.version}</maven>
+    </prerequisites>
+
     <name>Polarion Compatibility Maven Plugin</name>
     <description>Maven plugin that fails the build when a Polarion extension bundles classes referencing legacy javax packages</description>
     <url>https://github.com/intechcore/polarion-compatibility-maven-plugin</url>
@@ -51,7 +58,11 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- A fixed timestamp makes the published jars byte for byte reproducible. The bump
+             workflow rewrites it at release time, so it names the moment of the release. -->
+        <project.build.outputTimestamp>2026-09-01T20:00:00Z</project.build.outputTimestamp>
         <maven.compiler.release>21</maven.compiler.release>
+        <maven.min.version>3.6.3</maven.min.version>
 
         <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
         <maven-surefire-plugin.version>3.5.6</maven-surefire-plugin.version>
@@ -79,6 +90,7 @@
         <sonar.organization>intechcore</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <sonar.coverage.exclusions>src/test/**</sonar.coverage.exclusions>
+        <sonar.exclusions>target/generated-sources/**</sonar.exclusions>
     </properties>
 
     <dependencies>
@@ -141,7 +153,16 @@
                 <configuration>
                     <goalPrefix>polarion-compatibility</goalPrefix>
                     <requiredJavaVersion>${maven.compiler.release}</requiredJavaVersion>
+                    <requiredMavenVersion>${maven.min.version}</requiredMavenVersion>
                 </configuration>
+                <executions>
+                    <execution>
+                        <id>help-goal</id>
+                        <goals>
+                            <goal>helpmojo</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -166,6 +187,13 @@
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>${jacoco-maven-plugin.version}</version>
+                <configuration>
+                    <!-- maven-plugin-plugin generates HelpMojo. It is not ours to test, and
+                         counting it would put the 100% coverage this project holds out of reach. -->
+                    <excludes>
+                        <exclude>**/HelpMojo.class</exclude>
+                    </excludes>
+                </configuration>
                 <executions>
                     <execution>
                         <id>prepare-agent</id>
@@ -197,6 +225,8 @@
                 <version>${maven-javadoc-plugin.version}</version>
                 <configuration>
                     <failOnWarnings>true</failOnWarnings>
+                    <!-- The generated HelpMojo has an undocumented default constructor. -->
+                    <excludePackageNames>com.intechcore.polarion_compatibility_maven_plugin</excludePackageNames>
                 </configuration>
                 <executions>
                     <execution>

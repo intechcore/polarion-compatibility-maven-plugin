@@ -311,7 +311,7 @@ A Polarion extension bundle of about 2700 classes in 21 nested jars scans in und
 ## Requirements
 
 - Java 21
-- Maven 3.6+
+- Maven 3.6.3+
 
 ## Building
 
