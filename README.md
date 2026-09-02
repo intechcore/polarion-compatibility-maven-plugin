@@ -77,16 +77,18 @@ actually does.
 
 ### What it walks
 
-`ExtensionsScanner.scanExtensionFiles` lists `<PolarionHome>/extensions/*`, resolves
+`ExtensionsScanner.walkExtensionFiles` lists `<PolarionHome>/extensions/*`, resolves
 `eclipse/plugins` under each, walks that tree, and keeps every file whose lowercased name ends
-with `.jar` or `.jsp`, or equals `manifest.mf` or `web.xml`.
+with `.jar` or `.jsp`, or equals `manifest.mf` or `web.xml`. Plugins named in the exclusion
+property are dropped first, by `isPluginIncluded`.
 
 `JakartaCompatibilityChecker.isExtensionCompatible` then dispatches by name:
 
-- **`.jar`**: the jar manifest is checked, then every entry. A `.class` entry goes through ASM.
+- **`.jar`**: the jar manifest is checked, then every entry. Each entry name is lowercased before
+  its suffix is tested, so an entry named `Foo.JAR` is scanned. A `.class` entry goes through ASM.
   A nested `.jar` entry is extracted to a temporary file and checked recursively, manifest
   included. Every other entry is ignored, so a `web.xml` or `.jsp` packed **inside** a jar is
-  never checked.
+  never checked. Recursion has no depth limit.
 - **`manifest.mf`**: a loose manifest file on disk.
 - **`web.xml`**: a loose descriptor on disk.
 - **`.jsp`**: a loose page on disk.
@@ -172,7 +174,7 @@ pre-seeds it with their own offenders, `com.siemens.polarion.teamcenter.services
 
 Everything above describes internal Polarion classes. They carry no compatibility promise, and
 they change within a single release. An earlier 2606 build differs from the released
-`com.polarion.alm.install:install:2606` artifact in five places:
+`com.polarion.alm.install:install:2606` artifact in six places:
 
 |                                           | earlier 2606 build            | released 2606 artifact                                  |
 |-------------------------------------------|-------------------------------|---------------------------------------------------------|
@@ -180,6 +182,7 @@ they change within a single release. An earlier 2606 build differs from the rele
 | `JakartaCompatibilityChecker` constructor | `(Set<String>)`               | `(Set<String>, Set<String>)`                            |
 | package list field                        | `DEFAULT_PACKAGES`            | `KNOWN_PACKAGES`                                        |
 | extension exclusions                      | absent                        | `KNOWN_EXCLUDED_EXTENSIONS`, `isPluginExcludedFromScan` |
+| tree walk method                          | `scanExtensionFiles`          | `walkExtensionFiles`, plus `isPluginIncluded`           |
 | match method                              | `containsForbiddenPackages`   | `hasForbiddenPackages`                                  |
 
 The 22 packages and the matching logic are the same in both. Before changing detection, check
@@ -192,6 +195,7 @@ and the parsing options.
 |                        | Polarion                 | This plugin                                                             |
 |------------------------|--------------------------|-------------------------------------------------------------------------|
 | Reports                | first hit, boolean       | every package, with the class and the value that matched                |
+| Nesting depth          | unbounded recursion      | capped by `maxNestingDepth`; reaching the cap fails the build           |
 | Nested jars            | extracted to a temp file | streamed                                                                |
 | `web.xml` inside a jar | not checked              | checked                                                                 |
 | `.jsp` inside a jar    | not checked              | checked                                                                 |
@@ -289,6 +293,19 @@ references it grows in the next version, and Polarion will still reject it.
 | `failOnMissingJar`     | `polarion.compatibility.failOnMissingJar`     | `false`                | fail when the jar is absent                |
 | `skip`                 | `polarion.compatibility.skip`                 | `false`                | skip the check                             |
 
+### Entries the scan cannot inspect
+
+An entry the scan could not look inside fails the build, the same as a forbidden reference. Two
+things produce one: a nested jar deeper than `maxNestingDepth`, and a class file ASM cannot parse.
+
+Polarion answers the same way. `JakartaCompatibilityChecker.isClassFileCompatible` catches the
+parse failure, logs it and returns incompatible, which stops the server. Counting an uninspected
+entry as clean would make the build more lenient than the gate.
+
+Raise `maxNestingDepth` when a bundle nests deeper than the default. To leave a jar out on
+purpose, name it in `excludedJars`: an excluded jar is a deliberate opt-out and does not fail the
+build.
+
 ## Surveying before enforcing
 
 Run the whole build without breaking it:
@@ -303,6 +320,10 @@ version already declared in the project:
 ```bash
 mvn polarion-compatibility:check -Dpolarion.compatibility.jarFile=target/my-extension.jar
 ```
+
+Survey a cleaned build. Without `clean`, the bundle is reassembled over the previous `target/`,
+so the scan reads the nested jars of the older dependency set and reports on a bundle which no
+longer exists. This is the usual reason a survey names a jar nobody recognizes.
 
 ## Cost
 

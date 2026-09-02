@@ -72,6 +72,29 @@ class CheckMojoTest {
         return entries;
     }
 
+    /**
+     * A jar holding a forbidden reference two levels down, so a {@code maxNestingDepth} of 1
+     * leaves it uninspected.
+     */
+    private static Map<String, byte[]> deeplyNestedJar() throws IOException {
+        Map<String, byte[]> innermost = TestArchives.entries();
+        innermost.put("org/legacy/Dep.class", TestArchives.cls("org/legacy/Dep")
+                .withTypeInstruction("javax/servlet/Filter").build());
+
+        Map<String, byte[]> middle = TestArchives.entries();
+        middle.put("inner.jar", TestArchives.jar(innermost));
+
+        Map<String, byte[]> entries = TestArchives.entries();
+        entries.put("outer.jar", TestArchives.jar(middle));
+        return entries;
+    }
+
+    private static Map<String, byte[]> unreadableClass() {
+        Map<String, byte[]> entries = TestArchives.entries();
+        entries.put("com/example/Broken.class", "not a class".getBytes(StandardCharsets.UTF_8));
+        return entries;
+    }
+
     @Test
     void execute_shouldPassOnACleanBundle() throws IOException {
         givenJar(clean());
@@ -211,19 +234,50 @@ class CheckMojoTest {
     }
 
     @Test
-    void execute_shouldReportSkippedAndUnreadableEntries() throws IOException {
-        Map<String, byte[]> innermost = TestArchives.entries();
-        innermost.put("org/legacy/Dep.class", TestArchives.cls("org/legacy/Dep")
-                .withTypeInstruction("javax/servlet/Filter").build());
+    void execute_shouldFailWhenTheNestingLimitHidesAJar() throws IOException {
+        givenJar(deeplyNestedJar());
+        set("maxNestingDepth", 1);
 
-        Map<String, byte[]> middle = TestArchives.entries();
-        middle.put("inner.jar", TestArchives.jar(innermost));
+        assertThatThrownBy(this.mojo::execute)
+                .isInstanceOf(MojoFailureException.class)
+                .hasMessageContaining("1 entry(s) the scan could not inspect");
+    }
 
-        Map<String, byte[]> entries = TestArchives.entries();
-        entries.put("outer.jar", TestArchives.jar(middle));
-        entries.put("com/example/Broken.class", "not a class".getBytes(StandardCharsets.UTF_8));
+    @Test
+    void execute_shouldFailOnAnUnreadableClass() throws IOException {
+        givenJar(unreadableClass());
+
+        assertThatThrownBy(this.mojo::execute)
+                .isInstanceOf(MojoFailureException.class)
+                .hasMessageContaining("1 entry(s) the scan could not inspect");
+    }
+
+    @Test
+    void execute_shouldReportUninspectedEntriesAlongsideViolations() throws IOException {
+        Map<String, byte[]> entries = deeplyNestedJar();
+        entries.putAll(withServletReference());
         givenJar(entries);
         set("maxNestingDepth", 1);
+
+        assertThatThrownBy(this.mojo::execute)
+                .isInstanceOf(MojoFailureException.class)
+                .hasMessageContaining("javax.servlet")
+                .hasMessageContaining("1 entry(s) the scan could not inspect");
+    }
+
+    @Test
+    void execute_shouldOnlyWarnAboutUninspectedEntriesInSurveyMode() throws IOException {
+        givenJar(unreadableClass());
+        set("failOnViolation", false);
+
+        assertThatCode(this.mojo::execute).doesNotThrowAnyException();
+    }
+
+    @Test
+    void execute_shouldPassWhenTheJarBeyondTheNestingLimitIsExcluded() throws IOException {
+        givenJar(deeplyNestedJar());
+        set("maxNestingDepth", 1);
+        set("excludedJars", List.of("inner.jar"));
 
         assertThatCode(this.mojo::execute).doesNotThrowAnyException();
     }

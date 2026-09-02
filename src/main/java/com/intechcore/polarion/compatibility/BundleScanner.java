@@ -12,7 +12,9 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -86,9 +88,14 @@ public final class BundleScanner {
                     continue;
                 }
                 String name = entry.getName();
-                if (name.endsWith(".jar")) {
+                // Polarion lowercases the entry name before testing the suffix
+                // (JakartaCompatibilityChecker.isJarEntryCompatible), so it scans an entry named
+                // Foo.JAR. Matching case sensitively here would skip it and pass a bundle the
+                // gate rejects. The original name is kept for the report.
+                String suffixName = name.toLowerCase(Locale.ROOT);
+                if (suffixName.endsWith(".jar")) {
                     scanNestedJar(zip, container, name, depth, result);
-                } else if (checkClasses && name.endsWith(".class")) {
+                } else if (checkClasses && suffixName.endsWith(".class")) {
                     result.classesScanned++;
                     scanClass(readAll(zip), container, name, result);
                 } else if (checkManifest && "META-INF/MANIFEST.MF".equalsIgnoreCase(name)) {
@@ -127,9 +134,11 @@ public final class BundleScanner {
             result.unreadableClasses.add(container + "!/" + entryName);
             return;
         }
-        // ClassReader.accept always calls visit first, so a class which parsed has a name.
         // A detection key is the packageName of a rule this scanner matched, so all() holds it.
-        String source = visitor.className();
+        // ClassReader.accept always calls visit first, so a class which parsed has a name.
+        // className() is declared nullable all the same, so the entry path stands in for it. That
+        // keeps the report honest without a null branch no test can reach.
+        String source = Objects.requireNonNullElse(visitor.className(), entryName);
         for (Map.Entry<String, String> detection : visitor.detections().entrySet()) {
             PackageRules.Rule rule = rules.all().get(detection.getKey());
             result.add(new Violation(Violation.Kind.CLASS_REFERENCE, detection.getKey(),
