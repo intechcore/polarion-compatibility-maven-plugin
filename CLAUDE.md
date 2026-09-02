@@ -104,8 +104,16 @@ more lenient than the gate. Do not reintroduce it.
 
 ### The default ruleset must stay identical to Polarion's list
 
-`ruleset-jakarta.txt` is `ExtensionsScanner.DEFAULT_PACKAGES`, 22 entries, verbatim. Extra
+`ruleset-jakarta.txt` is `ExtensionsScanner.KNOWN_PACKAGES`, 22 entries, verbatim. Extra
 Jakarta packages belong in `ruleset-jakarta-extended.txt`, which is opt-in.
+
+### Only a freshly cleaned build proves anything about a real extension
+
+`mvn verify` without `clean` reassembles the bundle over a stale `target/`, so the scan reads the
+nested jars of the previous dependency set and reports a verdict for a bundle nobody has. That has
+produced a wrong answer twice: a fleet survey where five extensions failed on jars built against a
+pre-Jakarta `generic.app`, and a dependency downgrade which still reported the jar of the upgrade.
+Use `mvn clean verify` whenever the result is meant to say something about the extension.
 
 ### ASM parsing options must stay at 6
 
