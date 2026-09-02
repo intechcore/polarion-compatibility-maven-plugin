@@ -195,7 +195,7 @@ and the parsing options.
 |                        | Polarion                 | This plugin                                                             |
 |------------------------|--------------------------|-------------------------------------------------------------------------|
 | Reports                | first hit, boolean       | every package, with the class and the value that matched                |
-| Nesting depth          | unbounded recursion      | capped by `maxNestingDepth`; reaching the cap fails the build           |
+| Nesting depth          | unbounded recursion      | capped by `maxNestingDepth`; reaching it is reported like a violation   |
 | Nested jars            | extracted to a temp file | streamed                                                                |
 | `web.xml` inside a jar | not checked              | checked                                                                 |
 | `.jsp` inside a jar    | not checked              | checked                                                                 |
@@ -295,8 +295,9 @@ references it grows in the next version, and Polarion will still reject it.
 
 ### Entries the scan cannot inspect
 
-An entry the scan could not look inside fails the build, the same as a forbidden reference. Two
-things produce one: a nested jar deeper than `maxNestingDepth`, and a class file ASM cannot parse.
+An entry the scan could not look inside is reported like a forbidden reference: it fails the build
+when `failOnViolation` is `true`, and warns otherwise. Two things produce one: a nested jar deeper
+than `maxNestingDepth`, and a class file ASM cannot parse.
 
 Polarion answers the same way. `JakartaCompatibilityChecker.isClassFileCompatible` catches the
 parse failure, logs it and returns incompatible, which stops the server. Counting an uninspected
