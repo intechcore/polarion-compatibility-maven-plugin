@@ -292,6 +292,23 @@ class BundleScannerTest {
         assertThat(result.skippedJars()).containsExactly("bundle.jar!/outer.jar!/inner.jar");
     }
 
+    @Test
+    void scan_shouldMatchTheEntrySuffixCaseInsensitively() throws IOException {
+        Map<String, byte[]> nested = TestArchives.entries();
+        nested.put("org/legacy/Dep.CLASS", TestArchives.cls("org/legacy/Dep")
+                .withTypeInstruction("javax/servlet/Filter").build());
+
+        Map<String, byte[]> entries = TestArchives.entries();
+        entries.put("webapp/demo/WEB-INF/lib/LEGACY-1.0.JAR", TestArchives.jar(nested));
+
+        BundleScanner.ScanResult result = scan(entries);
+
+        assertThat(result.jarsScanned()).isEqualTo(1);
+        assertThat(result.violations()).singleElement()
+                .extracting(Violation::subject, Violation::container)
+                .containsExactly("javax.servlet", "bundle.jar!/webapp/demo/WEB-INF/lib/LEGACY-1.0.JAR");
+    }
+
 
     @Test
     void scan_shouldIgnoreDirectoryEntries() throws IOException {

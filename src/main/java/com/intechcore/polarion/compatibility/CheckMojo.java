@@ -132,7 +132,7 @@ public class CheckMojo extends AbstractMojo {
      * Creates the goal. Maven instantiates it and injects the parameters above.
      */
     public CheckMojo() {
-        // Declared only so javadoc has a constructor to document: an implicit one cannot carry
+        // Declared only so Javadoc has a constructor to document: an implicit one cannot carry
         // a comment, and maven-javadoc-plugin runs with failOnWarnings. Maven assigns every
         // @Parameter field by reflection after construction, so there is nothing to do here.
     }
@@ -191,26 +191,59 @@ public class CheckMojo extends AbstractMojo {
 
     private void report(@NotNull BundleScanner.ScanResult result) throws MojoFailureException {
         result.excludedJars().forEach(jar -> getLog().info("Excluded from the scan: " + jar));
-        result.skippedJars().forEach(jar -> getLog().warn("Not scanned, nesting limit reached: " + jar));
-        result.unreadableClasses().forEach(entry -> getLog().warn("Not scanned, unreadable class: " + entry));
 
         List<Violation> violations = result.violations();
-        if (violations.isEmpty()) {
+        List<String> uninspected = uninspected(result);
+        if (violations.isEmpty() && uninspected.isEmpty()) {
             getLog().info("No forbidden packages found");
             return;
         }
-        ViolationReport report = new ViolationReport(violations, maxSourcesPerPackage);
+
         List<String> lines = new ArrayList<>();
-        lines.add("Forbidden packages found in " + jarFile.getName());
-        lines.addAll(report.lines());
-        lines.add(report.summary());
-        if (failOnViolation) {
-            lines.forEach(line -> getLog().error(line));
-            getLog().error("Upgrade or replace the dependency, or exclude the jar with <excludedJars>");
-            throw new MojoFailureException("Forbidden packages found in " + jarFile.getName() + ": "
+        List<String> reasons = new ArrayList<>();
+        if (!violations.isEmpty()) {
+            ViolationReport report = new ViolationReport(violations, maxSourcesPerPackage);
+            lines.add("Forbidden packages found in " + jarFile.getName());
+            lines.addAll(report.lines());
+            lines.add(report.summary());
+            lines.add("Upgrade or replace the dependency, or exclude the jar with <excludedJars>");
+            reasons.add("Forbidden packages found in " + jarFile.getName() + ": "
                     + report.summary() + ": " + String.join(", ", report.subjects()));
         }
+        if (!uninspected.isEmpty()) {
+            lines.add("Entries the scan could not inspect in " + jarFile.getName());
+            lines.addAll(uninspected);
+            lines.add("Raise <maxNestingDepth>, or exclude the jar with <excludedJars>");
+            reasons.add(jarFile.getName() + " has " + uninspected.size()
+                    + " entry(s) the scan could not inspect");
+        }
+        if (failOnViolation) {
+            lines.forEach(line -> getLog().error(line));
+            throw new MojoFailureException(String.join("; ", reasons));
+        }
         lines.forEach(line -> getLog().warn(line));
+    }
+
+    /**
+     * Entries the scan could not look inside, each with the reason.
+     *
+     * <p>Polarion answers incompatible when it cannot read an entry:
+     * {@code JakartaCompatibilityChecker.isClassFileCompatible} catches the parse failure, logs
+     * it and returns false, which stops the server. An entry this scan never inspected therefore
+     * must not count as clean, or the build is more lenient than the gate.</p>
+     *
+     * <p>A jar left out through {@code excludedJars} is a deliberate opt-out, so it is not
+     * listed here.</p>
+     */
+    private @NotNull List<String> uninspected(@NotNull BundleScanner.ScanResult result) {
+        List<String> entries = new ArrayList<>();
+        for (String jar : result.skippedJars()) {
+            entries.add("  " + jar + "  (nesting limit " + maxNestingDepth + " reached)");
+        }
+        for (String entry : result.unreadableClasses()) {
+            entries.add("  " + entry + "  (unreadable class)");
+        }
+        return entries;
     }
 
     private @NotNull PackageRules loadRules() throws MojoExecutionException {
