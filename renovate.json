@@ -14,6 +14,13 @@
         "major"
       ],
       "dependencyDashboardApproval": false
+    },
+    {
+      "description": "The JDK of the workflows is a deliberate decision, not a dependency update: the plugin compiles for 21 (maven.compiler.release) and the extensions it checks run on Polarion's Java 21. With automerge on, a new JDK would otherwise land on its own, as 25 did in #27 and #28.",
+      "matchDepNames": [
+        "java-jdk"
+      ],
+      "enabled": false
     }
   ]
 }
