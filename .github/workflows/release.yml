@@ -34,6 +34,11 @@ jobs:
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase-env-var: MAVEN_GPG_PASSPHRASE
 
+      # The notes come from the CHANGELOG.md section that bump-version.yml cut.
+      # A tag without that section fails here, before anything is published.
+      - name: Read the release notes from CHANGELOG.md
+        run: .github/scripts/changelog-section.sh "${GITHUB_REF_NAME#v}" "$GITHUB_REPOSITORY" > "$RUNNER_TEMP/release-notes.md"
+
       # deploy walks the whole lifecycle, so the tests run here. Running them in
       # a separate job would build the project twice and publish a tree other
       # than the one that was tested.
@@ -70,7 +75,7 @@ jobs:
               --repo "$GITHUB_REPOSITORY" --clobber
           else
             gh release create "$GITHUB_REF_NAME" target/*.jar target/*.pom target/*.intoto.jsonl \
-              --repo "$GITHUB_REPOSITORY" --generate-notes
+              --repo "$GITHUB_REPOSITORY" --notes-file "$RUNNER_TEMP/release-notes.md"
           fi
 
   bump-to-snapshot:

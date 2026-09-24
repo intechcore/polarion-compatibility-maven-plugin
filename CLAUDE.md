@@ -179,9 +179,10 @@ Two consequences worth knowing:
 ## Release
 
 1. Run the `Bump Version & Release` workflow with `patch`, `minor` or `major`. It writes the
-   version to `pom.xml` and `README.md`, commits, tags `vX.Y.Z` and pushes.
-2. The tag triggers `release.yml`: tests, publish to Maven Central, GitHub Release, then a
-   commit that returns `main` to the next `-SNAPSHOT`. The release carries the jars, the pom
+   version to `pom.xml` and `README.md`, moves the Unreleased entries of `CHANGELOG.md` into a
+   section for the new version, commits, tags `vX.Y.Z` and pushes.
+2. The tag triggers `release.yml`: tests, publish to Maven Central, GitHub Release with the
+   notes of that section, then a commit that returns `main` to the next `-SNAPSHOT`. The release carries the jars, the pom
    and a signed provenance bundle (`actions/attest-build-provenance`, `*.intoto.jsonl`).
 
 `bump-version.yml` rewrites `<version>X.Y.Z</version>` in `README.md` with a global sed. Any
