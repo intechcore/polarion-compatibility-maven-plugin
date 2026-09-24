@@ -184,6 +184,8 @@ Two consequences worth knowing:
 2. The tag triggers `release.yml`: tests, publish to Maven Central, GitHub Release with the
    notes of that section, then a commit that returns `main` to the next `-SNAPSHOT`. The release carries the jars, the pom
    and a signed provenance bundle (`actions/attest-build-provenance`, `*.intoto.jsonl`).
+   Releases are immutable: `gh release create` attaches every file in one call, and the
+   workflow stops before Maven Central when the release exists already.
 
 `bump-version.yml` rewrites `<version>X.Y.Z</version>` in `README.md` with a global sed. Any
 other version literal in the README will drift, so do not pin one.

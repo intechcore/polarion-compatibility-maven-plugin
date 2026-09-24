@@ -3,7 +3,7 @@
 [![CI](https://github.com/intechcore/polarion-compatibility-maven-plugin/actions/workflows/ci.yml/badge.svg)](https://github.com/intechcore/polarion-compatibility-maven-plugin/actions/workflows/ci.yml)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/intechcore/polarion-compatibility-maven-plugin/badge)](https://scorecard.dev/viewer/?uri=github.com/intechcore/polarion-compatibility-maven-plugin)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/14793/badge)](https://www.bestpractices.dev/projects/14793)
-[![GitHub Release](https://img.shields.io/github/v/release/intechcore/polarion-compatibility-maven-plugin)](https://github.com/intechcore/polarion-compatibility-maven-plugin/releases)
+[![Release](https://img.shields.io/github/v/release/intechcore/polarion-compatibility-maven-plugin)](https://github.com/intechcore/polarion-compatibility-maven-plugin/releases)
 [![Maven Central](https://img.shields.io/maven-central/v/com.intechcore/polarion-compatibility-maven-plugin)](https://central.sonatype.com/artifact/com.intechcore/polarion-compatibility-maven-plugin)
 [![Java 21+](https://img.shields.io/badge/java-21+-blue.svg)](https://openjdk.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -335,7 +335,7 @@ A Polarion extension bundle of about 2700 classes in 21 nested jars scans in und
 
 ## Requirements
 
-- Java 21
+- Java 21 or later
 - Maven 3.6.3+
 
 ## Building
@@ -366,6 +366,10 @@ plugin bound to their own `verify` phase. Add `-Dinvoker.skip=true` to leave the
 
 GitHub releases after 0.1.2 carry a signed provenance bundle. Verify a downloaded file with
 `gh attestation verify <file> --repo intechcore/polarion-compatibility-maven-plugin`.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the build, the tests and the pull request rules.
 
 ## Disclaimer
 

@@ -10,6 +10,10 @@ Releases before 0.1.3 are listed on the
 ## [Unreleased]
 
 ### Changed
+- CI tests on Linux and Windows with Java 21 and 25.
+- CodeQL runs as the GitHub default setup instead of a workflow.
+- A release fails early when its GitHub release exists already. Releases are immutable and
+  get all their files in one step.
 - The version bump moves the Unreleased entries of this changelog into a section for
   the new version. The GitHub release takes its notes from that section.
 
