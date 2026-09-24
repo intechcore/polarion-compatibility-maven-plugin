@@ -4,7 +4,16 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+Releases before 0.1.3 are listed on the
+[GitHub releases page](https://github.com/intechcore/polarion-compatibility-maven-plugin/releases).
+
 ## [Unreleased]
+
+### Changed
+- The version bump moves the Unreleased entries of this changelog into a section for
+  the new version. The GitHub release takes its notes from that section.
+
+## [0.1.3] - 2026-09-24
 
 ### Security
 - OpenSSF Scorecard runs weekly and on every push to `main`. The README shows its badge.
@@ -19,6 +28,3 @@ All notable changes to this project are documented here. The format follows
 - GitHub releases after 0.1.2 carry the pom and a signed build provenance bundle (`*.intoto.jsonl`).
 - Renovate takes its common rules from the shared preset `github>intechcore/renovate-config`.
 - The shared preset also turns on OSV vulnerability alerts.
-
-Earlier releases are listed on the
-[GitHub releases page](https://github.com/intechcore/polarion-compatibility-maven-plugin/releases).
