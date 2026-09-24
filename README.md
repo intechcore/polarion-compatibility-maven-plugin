@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/intechcore/polarion-compatibility-maven-plugin/actions/workflows/ci.yml/badge.svg)](https://github.com/intechcore/polarion-compatibility-maven-plugin/actions/workflows/ci.yml)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/intechcore/polarion-compatibility-maven-plugin/badge)](https://scorecard.dev/viewer/?uri=github.com/intechcore/polarion-compatibility-maven-plugin)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/14793/badge)](https://www.bestpractices.dev/projects/14793)
 [![GitHub Release](https://img.shields.io/github/v/release/intechcore/polarion-compatibility-maven-plugin)](https://github.com/intechcore/polarion-compatibility-maven-plugin/releases)
 [![Maven Central](https://img.shields.io/maven-central/v/com.intechcore/polarion-compatibility-maven-plugin)](https://central.sonatype.com/artifact/com.intechcore/polarion-compatibility-maven-plugin)
 [![Java 21+](https://img.shields.io/badge/java-21+-blue.svg)](https://openjdk.org/)
