@@ -360,6 +360,11 @@ plugin bound to their own `verify` phase. Add `-Dinvoker.skip=true` to leave the
 2. The tag triggers `release.yml`: tests, publish to Maven Central, GitHub Release, then a
    commit that returns `main` to the next `-SNAPSHOT`.
 
+### Verify
+
+GitHub releases after 0.1.2 carry a signed provenance bundle. Verify a downloaded file with
+`gh attestation verify <file> --repo intechcore/polarion-compatibility-maven-plugin`.
+
 ## Disclaimer
 
 This software is provided "as is", without warranty of any kind, as the [LICENSE](LICENSE) states.

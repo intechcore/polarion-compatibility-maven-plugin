@@ -16,6 +16,7 @@ All notable changes to this project are documented here. The format follows
 - The release builds without the Maven cache and creates the GitHub release with the
   `gh` CLI instead of a third-party action.
 - Renovate pins every GitHub Action by its commit digest.
+- GitHub releases after 0.1.2 carry the pom and a signed build provenance bundle (`*.intoto.jsonl`).
 
 Earlier releases are listed on the
 [GitHub releases page](https://github.com/intechcore/polarion-compatibility-maven-plugin/releases).

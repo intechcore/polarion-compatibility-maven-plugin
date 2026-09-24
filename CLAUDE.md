@@ -181,7 +181,8 @@ Two consequences worth knowing:
 1. Run the `Bump Version & Release` workflow with `patch`, `minor` or `major`. It writes the
    version to `pom.xml` and `README.md`, commits, tags `vX.Y.Z` and pushes.
 2. The tag triggers `release.yml`: tests, publish to Maven Central, GitHub Release, then a
-   commit that returns `main` to the next `-SNAPSHOT`.
+   commit that returns `main` to the next `-SNAPSHOT`. The release carries the jars, the pom
+   and a signed provenance bundle (`actions/attest-build-provenance`, `*.intoto.jsonl`).
 
 `bump-version.yml` rewrites `<version>X.Y.Z</version>` in `README.md` with a global sed. Any
 other version literal in the README will drift, so do not pin one.
