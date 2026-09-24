@@ -42,7 +42,7 @@ port an extension; use this plugin afterward to keep it ported.
 <plugin>
     <groupId>com.intechcore</groupId>
     <artifactId>polarion-compatibility-maven-plugin</artifactId>
-    <version>0.1.2</version>
+    <version>0.1.3</version>
     <executions>
         <execution>
             <goals>
