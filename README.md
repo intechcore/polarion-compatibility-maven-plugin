@@ -2,6 +2,11 @@
 
 [![CI](https://github.com/intechcore/polarion-compatibility-maven-plugin/actions/workflows/ci.yml/badge.svg)](https://github.com/intechcore/polarion-compatibility-maven-plugin/actions/workflows/ci.yml)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/intechcore/polarion-compatibility-maven-plugin/badge)](https://scorecard.dev/viewer/?uri=github.com/intechcore/polarion-compatibility-maven-plugin)
+[![GitHub Release](https://img.shields.io/github/v/release/intechcore/polarion-compatibility-maven-plugin)](https://github.com/intechcore/polarion-compatibility-maven-plugin/releases)
+[![Maven Central](https://img.shields.io/maven-central/v/com.intechcore/polarion-compatibility-maven-plugin)](https://central.sonatype.com/artifact/com.intechcore/polarion-compatibility-maven-plugin)
+[![Java 21+](https://img.shields.io/badge/java-21+-blue.svg)](https://openjdk.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=intechcore_polarion-compatibility-maven-plugin&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=intechcore_polarion-compatibility-maven-plugin)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=intechcore_polarion-compatibility-maven-plugin&metric=coverage)](https://sonarcloud.io/summary/new_code?id=intechcore_polarion-compatibility-maven-plugin)
 [![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=intechcore_polarion-compatibility-maven-plugin&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=intechcore_polarion-compatibility-maven-plugin)
@@ -13,10 +18,6 @@
 [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=intechcore_polarion-compatibility-maven-plugin&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=intechcore_polarion-compatibility-maven-plugin)
 [![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=intechcore_polarion-compatibility-maven-plugin&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=intechcore_polarion-compatibility-maven-plugin)
 [![Technical Debt](https://sonarcloud.io/api/project_badges/measure?project=intechcore_polarion-compatibility-maven-plugin&metric=sqale_index)](https://sonarcloud.io/summary/new_code?id=intechcore_polarion-compatibility-maven-plugin)
-[![GitHub Release](https://img.shields.io/github/v/release/intechcore/polarion-compatibility-maven-plugin)](https://github.com/intechcore/polarion-compatibility-maven-plugin/releases)
-[![Maven Central](https://img.shields.io/maven-central/v/com.intechcore/polarion-compatibility-maven-plugin)](https://central.sonatype.com/artifact/com.intechcore/polarion-compatibility-maven-plugin)
-[![Java 21](https://img.shields.io/badge/java-21-blue.svg)](https://openjdk.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Fails the Maven build when a Polarion extension bundle would be rejected by Polarion's own
 compatibility gate. It scans the packaged jar and every jar nested inside it.
