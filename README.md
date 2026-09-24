@@ -362,7 +362,7 @@ plugin bound to their own `verify` phase. Add `-Dinvoker.skip=true` to leave the
 
 ### Verify
 
-Each GitHub release carries a signed provenance bundle. Verify a downloaded file with
+GitHub releases after 0.1.2 carry a signed provenance bundle. Verify a downloaded file with
 `gh attestation verify <file> --repo intechcore/polarion-compatibility-maven-plugin`.
 
 ## Disclaimer
