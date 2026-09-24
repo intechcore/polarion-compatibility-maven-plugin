@@ -12,19 +12,34 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
+permissions:
+  contents: read
+
 jobs:
   analyze:
-    name: Analyze Java
+    name: Analyze ${{ matrix.language }}
     runs-on: ubuntu-latest
 
     permissions:
       contents: read
       security-events: write
 
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: java-kotlin
+          # The workflows themselves. Nothing to build.
+          - language: actions
+            build-mode: none
+
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Set up JDK 21
+        if: matrix.language == 'java-kotlin'
         uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
         with:
           java-version: "21"
@@ -34,7 +49,8 @@ jobs:
       - name: Initialize CodeQL
         uses: github/codeql-action/init@1c5b675653bb5c22dbe9b12b556ec555138e09fd # v4.38.1
         with:
-          languages: java-kotlin
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
           # src/it holds sample projects for the integration tests, not plugin code.
           config: |
             paths-ignore:
@@ -42,9 +58,10 @@ jobs:
 
       # Only the classes are needed here. The tests run in ci.yml.
       - name: Build
+        if: matrix.language == 'java-kotlin'
         run: mvn -B clean compile
 
       - name: Analyze
         uses: github/codeql-action/analyze@1c5b675653bb5c22dbe9b12b556ec555138e09fd # v4.38.1
         with:
-          category: "/language:java-kotlin"
+          category: "/language:${{ matrix.language }}"

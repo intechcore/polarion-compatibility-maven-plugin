@@ -12,6 +12,9 @@ on:
           - minor
           - major
 
+permissions:
+  contents: read
+
 jobs:
   bump-and-release:
     runs-on: ubuntu-latest
@@ -22,6 +25,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          # zizmor: ignore[artipacked] "Commit and tag" pushes with these credentials.
           token: ${{ secrets.PAT_TOKEN }}
 
       - name: Set up JDK 21
@@ -35,19 +39,22 @@ jobs:
         id: current
         run: |
           VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout | sed 's/-SNAPSHOT//')
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "Current development version: $VERSION"
 
       - name: Calculate new version
         id: new
+        env:
+          CURRENT: ${{ steps.current.outputs.version }}
+          BUMP_TYPE: ${{ inputs.bump_type }}
         run: |
           # The pom already holds the next development version: release.yml
           # advanced it after the previous release. A patch release therefore
           # publishes it as it stands. Incrementing here as well would skip a
           # number, and would make the very first release 0.1.1 rather than
           # 0.1.0.
-          IFS='.' read -r major minor patch <<< "${{ steps.current.outputs.version }}"
-          case "${{ inputs.bump_type }}" in
+          IFS='.' read -r major minor patch <<< "$CURRENT"
+          case "$BUMP_TYPE" in
             major)
               major=$((major + 1))
               minor=0
@@ -61,11 +68,13 @@ jobs:
               ;;
           esac
           NEW_VERSION="${major}.${minor}.${patch}"
-          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
           echo "Releasing: $NEW_VERSION"
 
       - name: Update version in pom.xml
-        run: mvn versions:set -DnewVersion=${{ steps.new.outputs.version }} -DgenerateBackupPoms=false
+        env:
+          NEW_VERSION: ${{ steps.new.outputs.version }}
+        run: mvn versions:set -DnewVersion="$NEW_VERSION" -DgenerateBackupPoms=false
 
       - name: Stamp the build for reproducibility
         run: |
@@ -75,26 +84,35 @@ jobs:
           echo "Build timestamp: $STAMP"
 
       - name: Update version in README.md
+        env:
+          NEW_VERSION: ${{ steps.new.outputs.version }}
         run: |
-          sed -i 's/<version>[0-9]*\.[0-9]*\.[0-9]*<\/version>/<version>${{ steps.new.outputs.version }}<\/version>/g' README.md
+          sed -i "s/<version>[0-9]*\.[0-9]*\.[0-9]*<\/version>/<version>${NEW_VERSION}<\/version>/g" README.md
 
       - name: Commit and tag
+        env:
+          NEW_VERSION: ${{ steps.new.outputs.version }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add pom.xml README.md
-          git commit -m "chore: bump version to ${{ steps.new.outputs.version }}"
-          git tag "v${{ steps.new.outputs.version }}"
+          git commit -m "chore: bump version to $NEW_VERSION"
+          git tag "v$NEW_VERSION"
           git push origin main
-          git push origin "v${{ steps.new.outputs.version }}"
+          git push origin "v$NEW_VERSION"
 
       - name: Summary
+        env:
+          NEW_VERSION: ${{ steps.new.outputs.version }}
+          CURRENT: ${{ steps.current.outputs.version }}
         run: |
-          echo "## Release v${{ steps.new.outputs.version }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Releasing \`${{ steps.new.outputs.version }}\` from development version \`${{ steps.current.outputs.version }}-SNAPSHOT\`" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "The [release workflow](../../actions/workflows/release.yml) will now:" >> $GITHUB_STEP_SUMMARY
-          echo "- Run tests" >> $GITHUB_STEP_SUMMARY
-          echo "- Publish to Maven Central" >> $GITHUB_STEP_SUMMARY
-          echo "- Create GitHub Release" >> $GITHUB_STEP_SUMMARY
+          {
+            echo "## Release v$NEW_VERSION"
+            echo ""
+            echo "Releasing \`$NEW_VERSION\` from development version \`$CURRENT-SNAPSHOT\`"
+            echo ""
+            echo "The [release workflow](../../actions/workflows/release.yml) will now:"
+            echo "- Run tests"
+            echo "- Publish to Maven Central"
+            echo "- Create GitHub Release"
+          } >> "$GITHUB_STEP_SUMMARY"
