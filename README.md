@@ -1,6 +1,7 @@
 # Polarion Compatibility Maven Plugin
 
 [![CI](https://github.com/intechcore/polarion-compatibility-maven-plugin/actions/workflows/ci.yml/badge.svg)](https://github.com/intechcore/polarion-compatibility-maven-plugin/actions/workflows/ci.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/intechcore/polarion-compatibility-maven-plugin/badge)](https://scorecard.dev/viewer/?uri=github.com/intechcore/polarion-compatibility-maven-plugin)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=intechcore_polarion-compatibility-maven-plugin&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=intechcore_polarion-compatibility-maven-plugin)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=intechcore_polarion-compatibility-maven-plugin&metric=coverage)](https://sonarcloud.io/summary/new_code?id=intechcore_polarion-compatibility-maven-plugin)
 [![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=intechcore_polarion-compatibility-maven-plugin&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=intechcore_polarion-compatibility-maven-plugin)
@@ -357,6 +358,13 @@ plugin bound to their own `verify` phase. Add `-Dinvoker.skip=true` to leave the
    version to `pom.xml` and `README.md`, commits, tags `vX.Y.Z` and pushes.
 2. The tag triggers `release.yml`: tests, publish to Maven Central, GitHub Release, then a
    commit that returns `main` to the next `-SNAPSHOT`.
+
+## Disclaimer
+
+This software is provided "as is", without warranty of any kind, as the [LICENSE](LICENSE) states.
+Use it at your own risk. Intechcore GmbH is not liable for damage from its use, as far as the law
+allows. It is published free of charge, outside of any commercial offering, with no obligation to
+support it. Security reports are welcome, see [SECURITY.md](SECURITY.md).
 
 ## License
 
