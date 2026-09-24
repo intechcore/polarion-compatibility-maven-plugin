@@ -40,7 +40,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
-        java-version: ["21"]
+        # 21 is the release level of the plugin, 25 the current LTS.
+        java-version: ["21", "25"]
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -59,7 +60,7 @@ jobs:
         run: mvn -B clean verify
 
       - name: Upload the jar
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-latest' && matrix.java-version == '21'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: maven-plugin
