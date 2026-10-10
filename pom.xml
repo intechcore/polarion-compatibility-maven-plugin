@@ -80,7 +80,7 @@
         <maven-plugin-plugin.version>3.16.0</maven-plugin-plugin.version>
 
         <jetbrains-annotations.version>26.1.0</jetbrains-annotations.version>
-        <asm.version>9.10.1</asm.version>
+        <asm.version>9.11</asm.version>
 
         <junit.version>6.1.3</junit.version>
         <assertj.version>3.27.7</assertj.version>
