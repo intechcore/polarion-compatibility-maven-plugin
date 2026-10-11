@@ -17,6 +17,10 @@ Releases before 0.1.3 are listed on the
 - The version bump moves the Unreleased entries of this changelog into a section for
   the new version. The GitHub release takes its notes from that section.
 
+### Fixed
+- The comments of both Jakarta rulesets name the package list field of the released Polarion
+  2606, `ExtensionsScanner.KNOWN_PACKAGES`, not `DEFAULT_PACKAGES` of the early access build.
+
 ## [0.1.3] - 2026-09-24
 
 ### Security

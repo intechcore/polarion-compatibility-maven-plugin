@@ -1,6 +1,6 @@
 # Jakarta EE ruleset.
 #
-# These 22 entries are exactly ExtensionsScanner.DEFAULT_PACKAGES from Polarion 2606
+# These 22 entries are exactly ExtensionsScanner.KNOWN_PACKAGES from Polarion 2606
 # (com.polarion.alm.install.extensions.validator.ExtensionsScanner). Keep the two lists
 # identical: the point of this ruleset is that a build which passes here also passes
 # Polarion's startup gate. Adding an entry here makes the build stricter than the gate,
